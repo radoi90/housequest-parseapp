@@ -1,0 +1,14 @@
+{
+    "applications": {
+        "HouseQuest": {
+            "applicationId": "5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ", 
+            "masterKey": "xr49zW53FfdzV6jgTCgd8dwA4o26lPfE2hk49v3P"
+        }, 
+        "_default": {
+            "link": "HouseQuest"
+        }
+    }, 
+    "global": {
+        "parseVersion": "1.2.19"
+    }
+}

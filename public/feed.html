@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>HouseQuest App</title>
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/properties.css" media="all" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="css/animate.css">
+
+    <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="js/underscore.js"></script>
+    <script src="js/json2.js"></script>
+    <script src="http://www.parsecdn.com/js/parse-1.2.13.min.js"></script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="js/properties.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','http://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-37859939-3', 'auto');
+      ga('send', 'pageview');
+    </script>
+
+    <script>
+      function navButtonPressed() {
+        $("#options-panel").toggle();
+      }
+
+      $('.heart').hover(
+        function() {
+          $(this).css({"color" : "white"});
+        },
+        function() {
+          $(this).css({"color": "rgba(44, 62, 80, 1"});
+        }
+      );
+      
+      $('.remove').click(
+        function() {
+          $(this).css({"color": "#f1c40f"});
+        }
+      );
+
+      function logOut() {
+        if (Parse.User.current()) {
+          Parse.User.logOut();
+          window.location.href = "index.html";
+        }
+      }
+    </script>
+  </head>
+  <body>
+
+    <!-- Property App Interface -->
+    <nav class="navbar navbar-default" role="navigation">
+
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <div class="navbar-brand">House<span class="Q">Q</span>uest</div>
+            <button type="button" class="btn btn-text btn-logout" onclick="navButtonPressed();"><span class="user-icon glyphicon glyphicon-user"></span>My feed</button>
+        </div>  
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li><a class="title hidden-xs" href="#">House<span class="Q">Q</span>uest</a></li>
+            <li class="pull-right">
+              <button id="user-name" type="button" class="btn btn-text btn-logout" onclick="navButtonPressed();"></button>
+            </li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+
+    <div id="options-panel">
+      <!--<div>
+        <a>My profile</a>
+      </div>
+      <div>
+        <a>My preferences</a>
+      </div>-->
+      <div>
+        <a onclick="logOut();">Log out</a>
+      </div>
+    </div>
+
+
+    <div id="app-container"> 
+      <div id="split-screen">
+        <div id="transit-wpr" style="padding-top: 6px;">
+          <button class="btn" id="transit">
+            <img src='./img/transit-layer.png' width="50%" height="50%" id="transit" />
+          </button>
+        </div>
+        <div id="map-canvas"></div>
+        <div id="list-view" class="content">
+
+        </div>
+      </div>
+    </div>
+
+      <!-- Templates -->
+
+      <script type="text/template" id="manage-properties-template">
+        <!-- List header  -->
+        <div id="list-header">
+          <div id="filters">
+            <button class="btn selected" id="active">Active</button>
+            <button class="btn" id="booked">Viewings</button>
+            <button class="btn" id="starred">
+              <i class="fa fa-heart"></i>
+            </button>
+            <button class="btn" id="hidden">
+              <i class="fa fa-times"></i>
+            </button>
+          </div>  
+        </div>
+
+        <div id="list">
+          <ul id="property-list">
+            <div id="list-placeholder">
+              <div class="spinner">
+                <div class="cube1"></div>
+                <div class="cube2"></div>
+              </div>
+              <p class="bg-info">The algorithms are working, check back in a few minutes.</p>
+            </div>
+          </ul>
+        </div>
+
+        <iframe name="hidden_iframe" id="hidden_iframe"
+        style="display:none;" onload="{}">
+        </iframe>
+
+        <form id="viewing-form" action="https://docs.google.com/forms/d/1b9EaYbkaP-TF-ONZP15Jl6tclDl46WIV_a13_QAzFdU/formResponse" method="POST" target="hidden_iframe" style="display:none;">
+          <input type="text" name="entry.1798562605" id="viewing-user" value="<%= Parse.User.current().escape('username') %>">
+          <input type="text" name="entry.1968900279" id="viewing-availability" >
+          <input type="text" name="entry.1699279349" id="viewing-number" >
+          <input type="text" name="entry.421347300" id="viewing-address" >
+          <input type="text" name="entry.1186917773" id="viewing-beds" >
+          <input type="text" name="entry.171092278" id="viewing-pcm" >
+          <input type="text" name="entry.566251407" id="viewing-link" >
+        </form>
+      </script>
+
+      <script type="text/template" id="item-template">
+        <div id="<%= _.escape(content.listing_id) %>" class="property-box <%= starred ? 'hearted' : '' %> <%= hidden ? 'removed' : '' %> <%= booked ? 'booked' : '' %>">
+          <div class="property" style="background-image: url('<%= _.escape(content.image_url)%>')">
+            <div class="property-container">
+              <div class="button-header">
+                <div class="heart">
+                  <i class="fa fa-heart fa-2x"></i>
+                  <i class="fa fa-heart-o fa-2x"></i>
+                </div>
+                <div class="remove">
+                  <i class="fa fa-times fa-2x"></i>
+                </div>
+              </div>
+              <div class="property-info">
+                  <div class="">
+                    <div class="property-details">
+                      <div class="property-rooms">
+                        <div class="property-rooms-row">
+                          <div class="col-room">
+                            <img src="./img/beds.png" width="30px" height="20px" class="beds"/>
+                            <div class="bed-num"><%=_.escape(content.num_bedrooms) > 0 ? _.escape(content.num_bedrooms) : 'STUDIO'%></div>
+                          </div>
+                          <div class="col-room">
+                            <img src="./img/baths.png" width="32px" height="20px" class="baths"/>
+                            <div class="bath-num"><%=_.escape(content.num_bathrooms) > 0 ? _.escape(content.num_bathrooms) : 1%></div>
+                          </div>
+                          <div class="col-room col-room-right">
+                            <img src="./img/sofa.png" width="34px" height="15px" class="sofa"/>
+                            <div class="lounge-num"><%=_.escape(content.num_recepts)%></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="property-price">
+                        £<%=_.escape(content.rental_prices.per_month)%>
+                      </div>
+                    </div>
+                  </div>
+              </div> 
+            </div>
+          </div>
+          <div class="property-footer">
+            <div class="property-address">
+              <span class="address"><%= _.escape(content.displayable_address) %></span></br>
+              <span class="date">Added <%= _.escape(dateDiff(content.last_published_date)) %></span> 
+            </div>
+            <div class="view-button">
+              <button class="btn btn-flat btn-green <%= booked ? 'btn-view-pend' : 'btn-view'%> book">
+                <%= booked ? 'Viewing pending' : 'Arrange viewing' %>
+              </button>
+            </div>
+          </div> 
+        </div>
+      </script>
+    </body>
+
+  </html>

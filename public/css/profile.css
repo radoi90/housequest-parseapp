@@ -1,0 +1,132 @@
+@font-face {
+  font-family: 'molotregular';
+  src: url('molot-webfont.eot');
+  src: url('molot-webfont.eot?#iefix') format("embedded-opentype"), url('molot-webfont.woff') format("woff"), url('molot-webfont.ttf') format("truetype"), url('molot-webfont.svg#molotregular') format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  padding-top: 110px;
+  background-image: url("../img/bg.jpg");
+}
+
+.navbar {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.navbar-nav {
+  width: 100%;
+  text-align: center;
+}
+
+.navbar-nav > li {
+  float: none;
+  display: inline-block;
+}
+
+.text-center {
+  font-family: AvenirNextLTPro-Bold;
+font-size: 25px;
+color: #FFFFFF;
+line-height: 30px;
+/* A bit about you: */
+text-shadow: 0px 2px 0px rgba(0,0,0,0.50);
+}
+
+.navbar-header {
+    float: left;
+    padding: 15px;
+    text-align: center;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+  .navbar-header {
+    display: none;
+  }
+
+  .nav-login {
+    position: absolute;
+    right: 30px;
+    top: 10px;
+  }
+
+  .nav .pull-right {
+    position: absolute;
+    right: 36px;
+    top: 36px;
+  }
+}
+
+.navbar .navbar-header .navbar-brand {
+  color: #fff;
+  font-family: 'molotregular';
+  font-size: 29px;
+  text-shadow: 0px 4px #000;
+  font-weight: normal;
+}
+
+.navbar-brand .Q {
+  font-size: 34px;
+}
+
+.navbar-default .navbar-nav>li>a {
+  color: #fff;
+  font-family: 'molotregular';
+  font-size: 50px;
+  text-shadow: 0px 4px #000;
+  font-weight: normal;
+  line-height: 80px;
+}
+
+.title .Q {
+  font-size: 60px;
+}
+
+.btn-flat {
+  position: relative;
+  vertical-align: top;
+  font-size: 18px;
+  height: 46px;
+  min-width: 130px;
+  color: white;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-flat:active {
+  top: 1px;
+  outline: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.btn-orange {
+  background: #f1c40f;
+  border-bottom: 2px solid #A0861D;
+  -webkit-box-shadow: inset 0 -2px #A0861D;
+  box-shadow: inset 0 -2px #A0861D;
+}
+
+.btn-green {
+  background: #42CE69;
+  border-bottom: 2px solid #20772D;
+  -webkit-box-shadow: inset 0 -2px #20772D;
+  box-shadow: inset 0 -2px #20772D;
+}
+
+.form-control {
+  border-radius: 5px;
+  /* Rectangle 11: */
+  background: #FFFFFF;
+  -moz-box-shadow:    0px 2px 0px 0px #8E8E8E, 0px 3px 0px 0px rgba(44,62,80,0.50);
+  box-shadow:         0px 2px 0px 0px #8E8E8E, 0px 3px 0px 0px rgba(44,62,80,0.50);
+}
