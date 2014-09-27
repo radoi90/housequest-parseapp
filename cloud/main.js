@@ -128,3 +128,13 @@ function parseZooplaDate(s) {
 
   return date;
 }
+
+// Parse.Cloud.beforeSave(Parse.User, function(request, response) {
+//   if (!request.object.get("ACL")) {
+//   	var userACL = new Parse.ACL(request.object);
+// 	userACL.setRoleReadAccess("Administrator", true);
+// 	request.object.set("ACL", userACL);
+//   }
+
+//   response.success();
+// });

@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0;">
+	<title>HouseQuest - The best way to find your house in London</title>
+
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<link href='http://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="css/bootstrap-tagsinput.css">
+	<link rel="stylesheet" href="css/animate.css">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+	<script src="js/underscore.js"></script>
+	<script src="http://www.parsecdn.com/js/parse-1.2.13.min.js"></script>
+
+	<link rel="stylesheet" href="css/welcome.css" type="text/css">
+
+	<link href='http://fonts.googleapis.com/css?family=Nunito:400,300,700' rel='stylesheet' type='text/css'>
+
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','http://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-37859939-3', 'auto');
+	  ga('send', 'pageview');
+	</script>
+</head>
+<body>
+	<!-- Navbar -->
+	<nav class="navbar navbar-default" role="navigation">
+	  <div class="container-fluid animated fadeInDown">
+
+	    <!-- Brand and toggle get grouped for better mobile display -->
+	    <div class="navbar-header">
+		  <div class="navbar-brand">House<span class="Q">Q</span>uest</div>
+	      <button type="button" id="nav-button-mini" class="btn-flat btn-login-mini btn-orange" onclick="loginButtonPressed();"></button>
+	    </div>
+
+	    <!-- Collect the nav links, forms, and other content for toggling -->
+	    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+	      <ul class="nav navbar-nav">
+	      	<li><a class="title hidden-xs" href="#">House<span class="Q">Q</span>uest</a></li>
+	      	<li class="pull-right">
+	      		<button type="button" id="nav-button" class="btn-flat btn-orange" onclick="loginButtonPressed();"></button>
+	      	</li>
+	      </ul>
+	    </div><!-- /.navbar-collapse -->
+	  </div><!-- /.container-fluid -->
+	</nav>
+
+	<div id="options-panel">
+	</div>
+
+	<div class="overlay">
+		<script type="text/javascript">var submitted=false;</script>
+		<iframe name="hidden_iframe" id="hidden_iframe"
+		style="display:none;" onload="if(submitted)
+		{window.location='feed.html';}"></iframe>
+		
+		<!-- Form -->
+		<form class="form-horizontal" id="signup-form" role="form" action="https://docs.google.com/forms/d/1RvngjKApBx-h7Z8r-xBIMWWK9H98T-oXke4fqxErvHU/formResponse" method="post"
+				target="hidden_iframe">
+
+			<!-- Main page -->
+			<div class="container email-form">
+				<div id="banner-text" class="animated fadeIn">
+					Find rentals in London, easy.
+				</div>
+				<div class="row">
+					<div class="col-md-4 banner-text-sub animated fadeIn">
+						<p>Keep your day free. No more calls to or from estate agents.</p>
+					</div>
+
+					<div class="col-md-4 banner-text-sub animated fadeIn">
+						<p>Never miss the best properties. We pre-book you while you're at work.</p>
+					</div>
+
+					<div class="col-md-4 banner-text-sub animated fadeIn">
+						<p>Properties curated for you. Always checked for availability.</p>
+					</div>
+					
+				</div>
+
+				<div id="action-box" class="centered row animated fadeIn">
+					<div class="row">
+						<div class="email-container">
+							<input type="email" name="entry.1866180113" id="signup-email" placeholder="Email. No spam, pinky promise" class="form-control">
+						</div>
+						<div class="btn-find-container">
+							<button type="button" class="btn-flat btn-green btn-find" onclick="advanceEmailForm();">Let's get started</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="container info-form">
+				<div class="row-fluid">
+					<div class="col-sm-8  col-sm-offset-2">
+						<h2 class="text-center">Let's set up your account</h2>
+						<div class="error" style="display:none"></div> 
+
+						<div class="form-group">
+							<div class="col-sm-6">
+								<label for="signup-name" class="control-label" style="font-weight: 0;">What's your name?</label><input type="text" class="form-control" name="entry.495151048" id="signup-name" placeholder="Alex Alexanderson" required>
+							</div>
+
+							<div class="col-sm-6">
+								<label for="signup-password" class="control-label">
+									Set a password
+									<div class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="Set a password in order to access the feed of curated properties from any device."></div>
+								</label>
+								<input type="password" class="form-control" id="signup-password" required>
+							</div>						
+						</div>					
+
+						<div class="form-group">
+							<div class="col-sm-6">
+								<label for="signup-num_bedrooms" class="control-label">Bedrooms</label>
+								<select class="form-control" name="entry.935209026" id="signup-num_bedrooms" required>
+									<option value="">Number of bedrooms</option> <option value="Studio">Studio</option>
+									<option value="1+">1+</option> <option value="2+">2+</option>
+									<option value="3+">3+</option> <option value="4+">4+</option>
+								</select>
+							</div>
+
+							<div class="col-sm-6">
+								<label for="signup-pcm" class="control-label">
+									Max price (per month)
+								</label>
+								<select class="form-control" name="entry.1452370776" id="signup-pcm" required>
+									<option value="">Select budget</option>
+							    <option value="100" >&pound;100 pcm</option>
+							    <option value="200" >&pound;200 pcm</option>
+							    <option value="300" >&pound;300 pcm</option>
+							    <option value="400" >&pound;400 pcm</option>
+							    <option value="500" >&pound;500 pcm</option>
+							    <option value="600" >&pound;600 pcm</option>
+							    <option value="700" >&pound;700 pcm</option>
+							    <option value="800" >&pound;800 pcm</option>
+							    <option value="900" >&pound;900 pcm</option>
+							    <option value="1000" >&pound;1,000 pcm</option>
+							    <option value="1250" >&pound;1,250 pcm</option>
+							    <option value="1500" >&pound;1,500 pcm</option>
+							    <option value="1750" >&pound;1,750 pcm</option>
+							    <option value="2000" >&pound;2,000 pcm</option>
+							    <option value="2250" >&pound;2,250 pcm</option>
+							    <option value="2500" >&pound;2,500 pcm</option>
+							    <option value="2750" >&pound;2,750 pcm</option>
+							    <option value="3000" >&pound;3,000 pcm</option>
+							    <option value="3250" >&pound;3,250 pcm</option>
+							    <option value="3500" >&pound;3,500 pcm</option>
+							    <option value="3750" >&pound;3,750 pcm</option>
+							    <option value="4000" >&pound;4,000 pcm</option>
+							    <option value="4250" >&pound;4,250 pcm</option>
+							    <option value="4500" >&pound;4,500 pcm</option>
+							    <option value="4750" >&pound;4,750 pcm</option>
+							    <option value="5000" >&pound;5,000 pcm</option>
+							    <option value="5500" >&pound;5,500 pcm</option>
+							    <option value="6000" >&pound;6,000 pcm</option>
+							    <option value="6500" >&pound;6,500 pcm</option>
+							    <option value="7000" >&pound;7,000 pcm</option>
+							    <option value="7500" >&pound;7,500 pcm</option>
+							    <option value="8000" >&pound;8,000 pcm</option>
+							    <option value="8500" >&pound;8,500 pcm</option>
+							    <option value="9000" >&pound;9,000 pcm</option>
+							    <option value="9500" >&pound;9,500 pcm</option>
+							    <option value="10000" >&pound;10,000 pcm</option>
+							    <option value="12500" >&pound;12,500 pcm</option>
+							    <option value="15000" >&pound;15,000 pcm</option>
+							    <option value="17500" >&pound;17,500 pcm</option>
+							    <option value="20000" >&pound;20,000 pcm</option>
+							    <option value="25000" >&pound;25,000 pcm</option>
+								</select>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<div class="col-sm-12">
+								<label for="signup-location" class="control-label" >
+									Where do you want to live?
+									<div class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="Be super specific so we can find the absolute best properties for you personally."></div>
+								</label>
+								<textarea class="form-control" name="entry.922244654" id="signup-location" rows="2" placeholder="Tell us your preferred boroughs/districts/postcodes/travel zones/stations/tube lines. If you comute tell us your destination and max travel time."></textarea>
+							</div>
+						</div>
+
+						<div id="additional-form" style="display:none;">
+							<h2 class="text-center">Extra information</h2>
+							<div class="form-group">
+								<div class="col-sm-6">
+									<label for="signup-employer" class="control-label">
+										Employment status during tenancy
+										<div class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="Tell us if you're employed, self employed, a student or seeking employment. Otherwise we might suggest properties that won't be suitable for you."></div>
+									</label>
+									<select class="form-control" name="entry.893950790" id="signup-employer" >
+										<option value="">Select status</option>
+										<option value="employed">Employed</option>
+										<option value="self employed">Self employed/Contractor</option>
+										<option value="student">Student</option>
+										<option value="unemployed">Seeking employment</option>
+									</select>
+								</div>
+
+								<div class="col-sm-6">
+									<label for="signup-furniture" class="control-label">Furniture</label>
+									<select class="form-control" name="entry.1101325436" id="signup-furniture">
+										<option value="Show all">Show all</option> 
+										<option value="Furnished">Furnished</option>
+										<option value="Unfurnished">Unfurnished</option>
+									</select>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<div class="col-sm-6">
+									<label for="signup-date_min" class="control-label">
+										Earliest move in date
+										<div class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="Range of dates that you are willing to move"></div>
+									</label>
+									<input class="form-control" type="date" name="entry.1052293236" id="signup-date_min" >
+								</div>
+
+								<div class="col-sm-6">
+									<label for="signup-date_max" class="control-label">
+										Latest move in date
+										<div class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="Range of dates that you are willing to move"></div>
+									</label>
+									<input class="form-control" type="date" name="entry.79946928" id="signup-date_max" >
+								</div>
+							</div>
+
+							<div class="form-group">
+								<div class="col-sm-12">
+									<label for="signup-other" class="control-label" >
+										Tell us any other requirements you have
+										<div class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="Be super specific so we can find the absolute best properties for you personally."></div>
+									</label>
+									<textarea class="form-control" name="entry.242663229" id="signup-other" rows="2" placeholder="e.g. No council flats, only properties with lounge, at least 2 bathrooms, parking spot a plus."></textarea>
+								</div>
+							</div>
+						</div>
+						
+						<div class="fluid-container">
+							<p class="bg-info" style="text-align: center;">More options <a onclick="$('#additional-form').show();">here</a> for better curation.</p>
+						</div>
+
+						<div class="form-group text-center">
+							<button class="btn-flat btn-green btn-next" onclick="submitForm()">Submit</button>
+						</div>
+
+					</div>
+				</div>
+			</div>
+
+			<div class="container success-form">
+				<div id="success-box">
+					<div id="success-box-solid">
+						<div id="thumb">
+							<img src="./img/thumb.png" width="20%" height="20%" />
+						</div>
+						<div id="awesome">Awesome!</div>
+							<div id="line">
+								<img src="./img/line.png">
+							</div>
+						<div id="awesome-sub-text">
+							Sit back and relax. <br/>
+							We'll handle it from here.<br/><br/>
+
+							Stay tuned for an email when we get your feed up and running.
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<div class="outside-form">
+		<div class="greywrap">
+			<div class="container">
+		    <a name="how" id="how" style="position: relative; top: -82px;"></a>
+		    <div class="row white">
+		      <h1 class="centered">HOW IT WORKS</h1>
+		      <hr>
+		      <div class="col-sm-4 callout">
+		        <h2>No more calls</h2>
+		        <p>You can't be that person at work on the phone for ages with estate agents, especially if you're paid by the hour. We'll book you in for viewings and enquire about any property you like.</p>
+		      </div><!-- col-lg-4 -->
+
+		      <div class="col-sm-4 callout">
+		        <h2>Listings curated for you</h2>
+		        <p>Save time by leting us do the searching for you. We're on it 24/7 and all the properties we show you are available and match every specific requirement you might have.</p>
+		      </div><!-- col-lg-4 -->
+
+		      <div class="col-sm-4 callout">
+		        <h2>Simple, discrete interface</h2>
+		        <p>See all the properties we find for you in a centralized feed available from all devices. Mobile first design so you can check updates quickly at work or while comuting. One click to set up a viewing.</p>
+		      </div><!-- col-lg-4 -->
+		    </div><!-- row -->
+		  </div><!-- container -->
+	  </div><!-- greywrap -->
+
+		<div class="copyright">
+			<div class="container">
+		    <p>
+		        <span class="clerkenwell"></span>
+		        HouseQuest Ltd. &copy;2014 | Crafted in Clerkenwell, LDN
+		    </p>
+		  </div>
+	  </div>
+	</div>
+</body>
+
+<!-- Scripts -->
+<script type="text/template" id="login-template">
+	<form class="login-form">
+  		<div class="error" style="display:none"></div>
+		<input type="email" id="login-email" class="login-control" placeholder="Email">
+		<input type="password" id="login-password" class="login-control" placeholder="Password">
+		<button id="btn-login" class="btn btn-flat btn-green">
+			Log in
+		</button>
+		<a class="reset-password">Trouble logging in?</a>
+	</form>
+</script>
+
+<script type="text/template" id="resetPassword-template">
+	<form class="login-form">
+		<div class="reset-message">
+			Type in the email you used to sign up and we&#39;ll send you instructions to reset your password.
+		</div>
+  		<div class="success" style="display:none"></div>
+  		<div class="error" style="display:none"></div>
+		<input type="email" id="login-email" class="login-control" placeholder="Email">
+		<button id="btn-login" class="btn btn-flat btn-green">
+			Send
+		</button>
+		<a class="reset-password">Back to log in</a>
+	</form>
+</script>
+
+<script type="text/javascript">
+	$("#options-panel").hide();
+	var onEmail = true;
+
+	function loginButtonPressed() {
+		$("#options-panel").toggle();
+	}
+
+	function feedButtonPressed() {
+		window.location.href = 'feed.html';
+	}
+
+	function advanceEmailForm() {
+		onEmail = true;
+
+		var email = $("#signup-email").val();
+
+		if (validateEmail(email)) {
+			$('.email-form').addClass('animated bounceOutLeft');
+			$('.info-form').addClass('animated bounceInRight');
+			$('.info-form').css('display', 'block');
+			$('.outside-form').hide();
+		} else {
+			$("#action-box").css("overflow", "visible");
+			$("#signup-email").addClass('animated tada');
+			setTimeout(function() {
+		        $("#signup-email").removeClass('animated tada');
+		        $("#action-box").css("overflow", "hidden");
+		    }, 1000);
+		}
+	}
+
+	function submitForm() {
+		var email 		= $("#signup-email").val();
+		var password 	= $("#signup-password").val();
+		console.log(password);
+		
+		var name 		= $("#signup-name").val();
+		var employer 	= $("#signup-employer").val();
+
+		if (!(name == "" || email == "" || !validateEmail(email) || $("#signup-num_bedrooms").val() == "" || $("#signup-pcm").val() == "")) {
+			var user = new Parse.User();
+	    var userACL = new Parse.ACL();
+	    userACL.setRoleReadAccess("Administrator", true);
+	    user.set("password", password);
+	    user.set("email", email);
+	    user.set("username", email);
+	    user.set("ACL", userACL);
+	    user.set("first_name", name);
+	    user.set("employer", employer);
+	     
+	    user.signUp(null, {
+	      success: function(user) {
+					var reqACL = new Parse.ACL(Parse.User.current());
+		      reqACL.setRoleReadAccess("Administrator",true);
+		      reqACL.setRoleWriteAccess("Administrator",true);
+
+		      var Requirements = Parse.Object.extend("Requirements");
+					var requirements = new Requirements();
+					 
+					requirements.set("user", Parse.User.current());
+					requirements.set("ACL", reqACL);
+					requirements.set("num_bedrooms", $("#signup-num_bedrooms").val());
+					requirements.set("pcm", $("#signup-pcm").val());
+					requirements.set("date_min", $("#signup-date_min").val());
+					requirements.set("date_max", $("#signup-date_max").val());
+					requirements.set("furniture", $("#signup-furniture").val());
+					requirements.set("other", $("#signup-other").val());
+					
+					 
+					requirements.save(null, {
+						success: function (requirements) {
+							submitted=true;
+							$("#signup-form").submit();
+						}
+					});
+	      },
+	      error: function(user, error) {
+	        $(".info-form .error").html(error.message).show();
+	        $(".info-form button").removeAttr("disabled");
+	      }
+	    });
+
+	    $(".info-form button").attr("disabled", "disabled");
+		} else {
+			console.log("Can't advance");
+			$(".info-form .error").html("Please fill in all fields").show();
+		}
+	}
+
+	function validateEmail(email) { 
+    	var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    	return re.test(email);
+	}
+
+	$(function() {
+
+		Parse.$ = jQuery;
+
+		// Initialize Parse with your Parse application javascript keys
+		Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ",
+		               "lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
+
+		var LogInView = Parse.View.extend({
+		    events: {
+		      "submit form.login-form": "logIn",
+		      "click a.reset-password": "resetPassword"
+		    },
+
+		    el: "#options-panel",
+		    
+		    initialize: function() {
+		      _.bindAll(this, "logIn", "resetPassword");
+		      this.render();
+		    },
+
+		    logIn: function(e) {
+		      var self = this;
+		      var email = this.$("#login-email").val();
+		      var password = this.$("#login-password").val();
+		      
+		      Parse.User.logIn(email, password, {
+		        success: function(user) {
+		          window.location.href = 'feed.html';
+		        },
+
+		        error: function(user, error) {  
+		          self.$(".login-form .error").html("Invalid email or password, please try again.").show();
+		          self.$(".login-form button").removeAttr("disabled");
+		        }
+		      });
+
+		      this.$(".login-form button").attr("disabled", "disabled");
+
+		      return false;
+		    },
+
+		    resetPassword: function() {
+		    	var self = this;
+		    	
+		    	new ResetPasswordView();
+		    	self.undelegateEvents();
+          		delete self;
+		    },
+
+		    render: function() {
+		      this.$el.html(_.template($("#login-template").html()));
+		      this.delegateEvents();
+		    }
+		});
+
+		var ResetPasswordView = Parse.View.extend({
+		    events: {
+		      "submit form.login-form": "resetPassword",
+		      "click a.reset-password": "logIn"
+		    },
+
+		    el: "#options-panel",
+		    
+		    initialize: function() {
+		      _.bindAll(this, "logIn", "resetPassword");
+		      this.render();
+		    },
+
+		    resetPassword: function(e) {
+				var self = this;
+				var email = this.$("#login-email").val();
+
+				Parse.User.requestPasswordReset(email, {
+					success: function() {
+					  self.$(".login-form .error").hide();
+					  self.$(".login-form .success").html("Check your email for instructions.").show();
+					  self.$(".reset-message").hide();
+					  self.$("#login-email").hide();
+					  self.$("#btn-login").hide();
+					},
+					error: function(error) {
+					  if(email.length > 0) {
+					    self.$(".login-form .error").html("There is no user assigned to " + email).show();
+					  }
+
+					  self.$(".login-form button").removeAttr("disabled");
+					}
+				});
+
+				this.$(".login-form button").attr("disabled", "disabled");
+
+		        return false;
+		    },
+
+		    logIn: function() {
+		    	var self = this;
+		    	
+		    	new LogInView();
+		    	self.undelegateEvents();
+          		delete self;
+		    },
+
+		    render: function() {
+		      this.$el.html(_.template($("#resetPassword-template").html()));
+		      this.delegateEvents();
+		    }
+		});
+
+		// The main view for the app
+		var AppView = Parse.View.extend({
+			// Instead of generating a new element, bind to the existing skeleton of
+			// the App already present in the HTML.
+			el: $("#propertyapp"),
+
+			initialize: function() {
+			  this.render();
+			},
+
+			render: function() {
+			  if (Parse.User.current()) {
+			  	$("button.btn-orange").html('<span class="user-icon glyphicon glyphicon-user"></span>My feed');
+			    $("#nav-button").attr("onclick","feedButtonPressed()");
+			    $("#nav-button-mini").attr("onclick","feedButtonPressed()");
+			  } else {
+			  	$("button.btn-orange").html("Log in");
+			    new LogInView();
+			  }
+			}
+		});
+
+		new AppView;
+	});
+</script>
+<script>
+   $(function () { $("[data-toggle='tooltip']").tooltip(); });
+</script>
+</html>
