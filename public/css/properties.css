@@ -1,0 +1,498 @@
+/* Panel layout */
+#app-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+}
+.panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100%;
+}
+.panel-thin {
+  width: 400px;
+}
+.panel-wide {
+  width: calc(100% - 800px);
+  left: 400px;
+}
+.pull-left{
+  left: 0;
+}
+.pull-right{
+  right: 0;
+}
+
+/* Map */
+#map-canvas {
+  height: 100%;
+}
+
+/* List */
+#list {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+}
+#list-header {
+  position: relative;
+  z-index: 2;
+  padding: 0;
+  height: 30px;
+  background: #F1C40F;
+  -moz-box-shadow:    0px 3px 0px 0px rgba(149,123,17,0.53);
+  box-shadow:         0px 3px 0px 0px rgba(149,123,17,0.53);
+  overflow:hidden;
+}
+#list-view #list-header #filters {
+  font-family: AvenirNext LT Pro Regular;
+  font-size: 10px;
+  padding-top: 2px;
+  text-align: center;
+  margin-right: 20px;
+}
+
+.btn {
+  /*padding-top: 0;*/
+  border:none !important;
+  box-shadow:none !important;
+  padding: 5px;
+}
+
+.selected {
+  color: #FFF;
+}
+
+.btn-logout {
+  padding-right: 10px;
+  padding-top: 8px;
+
+  background: #f1c40f;
+  border-bottom: 2px solid #A0861D;
+  -webkit-box-shadow: inset 0 -2px #A0861D;
+  box-shadow: inset 0 -2px #A0861D;
+  outline: none;
+}
+
+#active {
+  padding-right:25px;
+
+}
+
+#booked {
+  padding-right:25px;
+
+}
+
+#starred {
+  padding-right:25px;
+
+}
+
+#transit {
+  padding: 0;
+}
+
+#property-list {
+  list-style-type: none;
+  margin:0;
+  margin-bottom: 60px;
+  padding: 15px;
+}
+
+.property-box {
+  height: 310px;
+  max-width: 372px;
+  display: inline-table;
+  list-style-type: none;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.property {
+  height: 250px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: #FFFFFF;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  background-image: url(" http://lc.zoocdn.com/1f507710b510d111db49df77245b2921c6c564a6.jpg");
+  background-size: cover;
+  position: relative;
+}
+
+.property .property-info {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  height: 60px;
+  padding-top:20px;
+  /*background-color: rgba(44,62,80,);*/
+  background: -moz-linear-gradient(top,  rgba(52,73,94,0) 0%, rgba(44,62,80,1) 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(52,73,94,0)), color-stop(100%,rgba(44,62,80,1))); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  rgba(52,73,94,0) 0%,rgba(44,62,80,1) 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  rgba(52,73,94,0) 0%,rgba(44,62,80,1) 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  rgba(52,73,94,0) 0%,rgba(44,62,80,1) 100%); /* IE10+ */
+  background: linear-gradient(to bottom,  rgba(52,73,94,0) 0%,rgba(44,62,80,1) 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0034495e', endColorstr='#2c3e50',GradientType=0 ); /* IE6-9 */
+
+}
+
+.button-header {
+  width: 100%;
+}
+
+.heart {
+  color: rgba(44, 62, 80, 1);
+  height: 40px;
+  width: 40px;
+  margin: 10px;
+  float:left;
+}
+
+.heart i {
+  position: absolute;
+}
+
+.heart .fa-heart-o {
+  color: white;
+}
+
+.heart:hover {
+  cursor: pointer;
+}
+
+.hearted .heart .fa-heart {
+  color: #f1c40f;
+}
+
+.remove {
+  float:right;
+  color: rgba(44, 62, 80, 1);
+  margin: 8px;
+}
+
+.remove:hover {
+  cursor: pointer;
+}
+
+.removed .remove .fa-times {
+  color: rgb(156, 45, 45);
+}
+
+.property-details {
+  color: white;
+  font-family: AvenirNext LT Pro Medium;
+}
+
+.property-price {   
+  padding-right: 0;
+  text-align: right;
+  font-family: AvenirNext LT Pro Demi;
+  font-size: 30px;
+  float:right;
+}
+
+.property-footer {
+  width: 100%;
+}
+
+.property-footer .property-address {
+  margin:0;
+  color: #34495E;
+  font-family: AvenirNext LT Pro Medium;
+  font-size: 14px;
+  max-width: 215px;
+  float:left;
+}
+
+.view-button {
+  float:right;
+  margin: 0;
+  padding:0;
+}
+
+.property .property-image {
+  max-width: 230px;
+  overflow: hidden;
+}
+
+.property .property-image img {
+  max-width: 200px;
+}
+
+.property .property-info .property-details {
+  height: 70%;
+  padding: 5px;
+}
+
+.property .property-info .property-buttons {
+ padding: 5px; 
+}
+
+.property-stats {
+  padding-top: 10px;
+  font-family: AvenirNext LT Pro Demi;
+  font-size: 18px;
+  color: #34495E;
+  line-height: 25px;
+}
+
+.btn-flat {
+  position: relative;
+  vertical-align: top;
+  font-size: 18px;
+  height: 46px;
+  min-width: 130px;
+  color: white;
+  text-align: center;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: AvenirNext LT Pro Medium;
+}
+
+.btn-flat:active {
+  top: 1px;
+  outline: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.btn-green {
+  background: #2ECC71;
+  border-bottom: 2px solid #1B7240;
+  -webkit-box-shadow: inset 0 -1px #1B7240;
+  box-shadow: inset 0 -1px #1B7240;
+  outline: none;
+}
+
+.hide-btn {
+  height: 45px;
+  width: 45px;
+  outline: none !important;
+  border: none !important;
+}
+
+.star-btn {
+  height: 45px;
+  width: 45px;
+  outline: none !important;
+  border: none !important;
+}
+
+.star-img {
+  margin-top: -5px;
+}
+
+.btn-view {
+  font-size: 16px;   
+  width: 150px;
+}
+
+.btn-view-pend {
+  font-size: 16px;   
+  width: 150px;
+  background-color: #e67e22;
+}
+
+.btn-view-confirm {
+  font-size: 16px;   
+  width: 150px;
+  background-color: #f1c40f;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 100%;
+  vertical-align: baseline;
+  font-family: inherit;
+  color: inherit;
+  -webkit-appearance: none;
+  -ms-appearance: none;
+  -o-appearance: none;
+  appearance: none;
+}
+
+.address {
+  display:inline-block;
+  width:215px;
+  white-space: nowrap;
+  overflow:hidden !important;
+  text-overflow: ellipsis;
+}
+
+.date {
+  font-size: 10px;
+}
+
+/* Buttons */
+.btn {
+  font-family: AvenirNext LT Pro Medium;
+  outline: none !important;
+  border: none !important;
+}
+
+.btn:focus {
+  outline: none;
+  color: white;
+}
+
+.btn:active {
+  outline: none;
+}
+
+.col-room {
+  padding-left: 0px;
+  /*padding-bottom: 4400px;*/
+  float:left;
+  width:72px;
+  margin-right: 10px;
+}
+
+.col-room-right {
+  margin-right: 0px;
+}
+
+.property-rooms {
+  padding-left: 0;
+  margin-left: 0;
+  font-family: AvenirNext LT Pro Medium;
+  font-size: 22px;
+  width: 250px;
+}
+
+.property-rooms-row {
+  margin-left: 10px;
+  margin-top: 2px;
+}
+
+.btn-text {
+  color: white;
+} 
+
+.beds {
+  margin-top: 4px;
+}
+
+.baths {
+  margin-top: 3px;
+}
+
+.sofa {
+  margin-top: 6px;
+}
+
+.bed-num {
+  /*padding-top:10px;*/
+  float: right;
+  padding: 6px;
+  padding-right:12px;
+}
+
+.bath-num {
+  /*padding-top: 12px;*/
+  float: right;
+  padding: 6px;
+  padding-right:12px;
+}
+
+.lounge-num {
+  float:right;
+  padding: 6px;
+  padding-right:12px;
+}
+
+@media(max-width:768px){
+  .navbar-header {
+    padding-top: 0;
+    height: 50px;
+  }
+
+  #map-canvas {
+    display: none;
+  }
+
+  .navbar-brand {
+    padding-left: 0px;
+  }
+
+  #list-view {
+    width: 100%;
+    top:53px;
+  }
+  #list-header {
+    width: 100%;
+  }
+
+  .btn-green {
+    width: 70px;
+    font-size: 14px;
+  }
+
+  .property-price {
+    position: absolute;
+    float: left;
+    margin-top: -35px;
+    padding-left: 10px;
+  }
+
+  .property-rooms {
+    float:none;
+  }
+
+  .property-details {
+    width: 100%;
+  }
+
+  .property .property-info {
+    height: 100px;
+    padding-top: 60px;
+  }
+
+  .btn-logout {
+    position: absolute;;
+    right: 10px;
+    top: 10px;
+  }
+  .Q {
+    font-size: 34px;
+  }
+
+  #list-view #list-header {
+    height: 30px;
+  }
+
+  #list-view #list-header #filters {
+    font-size: 10px;
+    padding-top: 0px;
+    padding-left: 15px;
+  }
+
+  #active {
+    padding-right: 30px;
+  }
+
+  #booked {
+    padding-right: 30px;
+  }
+
+  #starred {
+    padding-right: 30px;
+  }
+
+  #hidden {
+    padding-right: 30px;
+  }
+
+  .address {
+    width: 159px;
+  }
+}

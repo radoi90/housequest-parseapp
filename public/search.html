@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>HouseQuest App</title>
+
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.1/themes/cupertino/jquery-ui.css">
+  <link rel="stylesheet" href="css/properties.css">
+
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
+  <script src="js/underscore.js"></script>
+  <script src="http://www.parsecdn.com/js/parse-1.2.13.min.js"></script>
+
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  <script src="js/properties.js"></script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <div id="app-container">
+    <div id="search-container" class="panel panel-thin pull-left">
+    </div> 
+
+    <div id="map-container" class="panel panel-wide">
+      <div id="transit-wpr" style="padding-top: 6px;">
+        <button class="btn" id="transit">
+          <img src='./img/transit-layer.png' width="50%" height="50%" id="transit" />
+        </button>
+      </div>
+      <div id="map-canvas"></div>
+    </div>
+
+    <div id="list-container" class="panel panel-thin pull-right">
+    </div>
+  </div>
+
+  <!-- Templates -->
+
+  <script type="text/template" id="search-template">
+    <form role="form">
+      <div class="form-group">
+        <input type="text" class="form-control" id="location" placeholder="Where do you want to live?">
+      </div>
+      <div class="form-group">
+        <label class="checkbox-inline">
+          <input type="checkbox" class="num-beds-select" value="0" <%= _.contains(num_beds,0) ? 'checked="checked"' : '' %>> Studio
+        </label>
+        <label class="checkbox-inline">
+          <input type="checkbox" class="num-beds-select" value="1" <%= _.contains(num_beds,1) ? 'checked="checked"' : '' %>> 1 bed
+        </label>
+        <label class="checkbox-inline">
+          <input type="checkbox" class="num-beds-select" value="2" <%= _.contains(num_beds,2) ? 'checked="checked"' : '' %>> 2 bed
+        </label>
+        <label class="checkbox-inline">
+          <input type="checkbox" class="num-beds-select" value="3" <%= _.contains(num_beds,3) ? 'checked="checked"' : '' %>> 3 bed
+        </label>
+        <label class="checkbox-inline">
+          <input type="checkbox" class="num-beds-select" value="4" <%= _.contains(num_beds,4) ? 'checked="checked"' : '' %>> 4 +
+        </label>
+      </div>
+      <div class="form-group">
+        <div id="price-slider"></div>
+        <input type="text" readonly id="price-min" value="<%= price_min %>">
+        <input type="text" readonly id="price-max" value="<%= price_max %>">          
+      </div>
+      <div class="checkbox">
+        <label>
+          <input id="with-photos" type="checkbox" <%= with_photos ? 'checked="checked"' : '' %>> Require with pictures
+        </label>
+      </div>
+      <button type="button" class="btn btn-default btn-save">Save search</button>
+    </form>
+  </script>
+
+  <script type="text/template" id="manage-properties-template">
+    <!-- List header  -->
+    <div id="list-header">
+      <div id="filters">
+        <button class="btn selected" id="active">Active</button>
+        <button class="btn" id="booked">Viewings</button>
+        <button class="btn" id="starred">
+          <i class="fa fa-heart"></i>
+        </button>
+        <button class="btn" id="hidden">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>  
+    </div>
+
+    <div id="list">
+      <ul id="property-list">
+        <div id="list-placeholder">
+          <div class="spinner">
+            <div class="cube1"></div>
+            <div class="cube2"></div>
+          </div>
+          <p class="bg-info">The algorithms are working, check back in a few minutes.</p>
+        </div>
+      </ul>
+    </div>
+  </script>
+
+  <script type="text/template" id="item-template">
+    <div id="<%= _.escape(content.listing_id) %>" class="property-box <%= starred ? 'hearted' : '' %> <%= hidden ? 'removed' : '' %> <%= booked ? 'booked' : '' %>">
+      <div class="property" style="background-image: url('<%= _.escape(content.image_url)%>')">
+        <div class="property-container">
+          <div class="button-header">
+            <div class="heart">
+              <i class="fa fa-heart fa-2x"></i>
+              <i class="fa fa-heart-o fa-2x"></i>
+            </div>
+            <div class="remove">
+              <i class="fa fa-times fa-2x"></i>
+            </div>
+          </div>
+          <div class="property-info">
+              <div class="">
+                <div class="property-details">
+                  <div class="property-rooms">
+                    <div class="property-rooms-row">
+                      <div class="col-room">
+                        <img src="./img/beds.png" width="30px" height="20px" class="beds"/>
+                        <div class="bed-num"><%=_.escape(content.num_bedrooms) > 0 ? _.escape(content.num_bedrooms) : 'STUDIO'%></div>
+                      </div>
+                      <div class="col-room">
+                        <img src="./img/baths.png" width="32px" height="20px" class="baths"/>
+                        <div class="bath-num"><%=_.escape(content.num_bathrooms) > 0 ? _.escape(content.num_bathrooms) : 1%></div>
+                      </div>
+                      <div class="col-room col-room-right">
+                        <img src="./img/sofa.png" width="34px" height="15px" class="sofa"/>
+                        <div class="lounge-num"><%=_.escape(content.num_recepts)%></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="property-price">
+                    £<%=_.escape(content.rental_prices.per_month)%>
+                  </div>
+                </div>
+              </div>
+          </div> 
+        </div>
+      </div>
+      <div class="property-footer">
+        <div class="property-address">
+          <span class="address"><%= _.escape(content.displayable_address) %></span></br>
+          <span class="date">Added <%= _.escape(dateDiff(content.last_published_date)) %></span> 
+        </div>
+        <div class="view-button">
+          <button class="btn btn-flat btn-green <%= booked ? 'btn-view-pend' : 'btn-view'%> book">
+            <%= booked ? 'Viewing pending' : 'Arrange viewing' %>
+          </button>
+        </div>
+      </div> 
+    </div>
+  </script>
+</body>
+</html>
