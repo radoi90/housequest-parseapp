@@ -48,13 +48,13 @@ function fetchZooplaPage(pageNumber, pageSize, lastAddedId, dateLimit, status, j
     	'Content-Type': 'application/json;charset=utf-8'
   	},
 		params: {
-	    area 					: 'London',
-	    listing_status: 'rent',
-	    page_size			: pageSize,
+	    area 			: 'London',
+	    listing_status	: 'rent',
+	    page_size		: pageSize,
 	    page_number		: pageNumber,
-	    order_by			: 'age',
+	    order_by		: 'age',
 	    summarised		: true,
-	    api_key				: zoopla_api_key
+	    api_key			: zoopla_api_key
 	  },
 		success: function(httpResponse) {
 			console.log("Fetched page: " + pageNumber);
@@ -128,3 +128,9 @@ function parseZooplaDate(s) {
 
   return date;
 }
+
+Parse.Cloud.define("isInBorough", function(request, response) {
+  var data = require('cloud/boroughs.js');
+
+  response.success(data.boroughs.length);
+});

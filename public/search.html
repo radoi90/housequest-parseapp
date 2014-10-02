@@ -76,9 +76,9 @@
     </form>
   </script>
 
-  <script type="text/template" id="manage-properties-template">
+  <script type="text/template" id="results-template">
     <!-- List header  -->
-    <div id="list-header">
+    <div id="results-list-header">
       <div id="filters">
         <button class="btn selected" id="active">Active</button>
         <button class="btn" id="booked">Viewings</button>
@@ -91,20 +91,13 @@
       </div>  
     </div>
 
-    <div id="list">
-      <ul id="property-list">
-        <div id="list-placeholder">
-          <div class="spinner">
-            <div class="cube1"></div>
-            <div class="cube2"></div>
-          </div>
-          <p class="bg-info">The algorithms are working, check back in a few minutes.</p>
-        </div>
+    <div id="list-container">
+      <ul id="results-list">
       </ul>
     </div>
   </script>
 
-  <script type="text/template" id="item-template">
+  <script type="text/template" id="result-template">
     <div id="<%= _.escape(content.listing_id) %>" class="property-box <%= starred ? 'hearted' : '' %> <%= hidden ? 'removed' : '' %> <%= booked ? 'booked' : '' %>">
       <div class="property" style="background-image: url('<%= _.escape(content.image_url)%>')">
         <div class="property-container">

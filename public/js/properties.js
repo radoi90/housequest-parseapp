@@ -51,7 +51,7 @@ $(function() {
     }
   });
 
-  // Property Item View
+  // Search Item View
   // --------------
 
   // The DOM element for a property item...
