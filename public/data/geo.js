@@ -27,10 +27,57 @@ function locationInBorough(borough, location){
 	return(counter%2==1);
 }
 
-function printBorough(lat,lon) {
+function getBorough(location) {
 	for(var i = 0; i < boroughs.length; i++) {
 		var borough = boroughs[i];
-		if (locationInBorough(borough, {latitude: lat, longitude: lon}))
-			console.log(borough.name)
+		if (locationInBorough(borough, location))
+			return borough.name;
 	}
+
+	return null;
 }
+
+function createGeoJSON() {
+	var obj = {
+		type: "FeatureCollection",
+		features: []
+	};
+
+	for(var i = 0; i < boroughs.length; i++) {
+		var borough = boroughs[i];
+		var bObj = {
+			type: "Feature",
+			properties: {
+				name: borough.name,
+				color: "blue",
+			},
+			geometry: {
+				type: "Polygon",
+				coordinates: [[]]
+			}
+		};
+
+		for (var j = 0; j < borough.boundary.length; j++) {
+			bObj.geometry.coordinates[0].push([borough.boundary[j].longitude,borough.boundary[j].latitude]);
+		}
+
+		obj.features.push(bObj);
+	}
+
+	var url = 'data:text/json;charset=utf8,' + encodeURIComponent(JSON.stringify(obj));
+	window.open(url, '_blank');
+	window.focus();
+}
+
+function createBoroughNames() {
+	var obj = [];
+	for(var i = 0; i < boroughs.length; i++) {
+		obj.push(boroughs[i].name);
+	}
+
+	var url = 'data:text/json;charset=utf8,' + encodeURIComponent(JSON.stringify(obj));
+	window.open(url, '_blank');
+	window.focus();
+}
+
+createBoroughNames();

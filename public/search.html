@@ -7,15 +7,18 @@
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.1/themes/cupertino/jquery-ui.css">
+  <link rel="stylesheet" href="css/bootstrap-tagsinput.css">
   <link rel="stylesheet" href="css/properties.css">
 
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
   <script src="https://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
   <script src="js/underscore.js"></script>
   <script src="http://www.parsecdn.com/js/parse-1.2.13.min.js"></script>
-
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  <script src="js/typeahead.bundle.min.js"></script>
+  <script src="js/bootstrap-tagsinput.min.js"></script>
+
   <script src="js/properties.js"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -43,7 +46,8 @@
   <script type="text/template" id="search-template">
     <form role="form">
       <div class="form-group">
-        <input type="text" class="form-control" id="location" placeholder="Where do you want to live?">
+        <input type="text" class="form-control" data-role="tagsinput" id="areas"
+          value="<%= _.escape(areas.join()) %>" placeholder="Where do you want to live?"/>
       </div>
       <div class="form-group">
         <label class="checkbox-inline">
@@ -72,7 +76,8 @@
           <input id="with-photos" type="checkbox" <%= with_photos ? 'checked="checked"' : '' %>> Require with pictures
         </label>
       </div>
-      <button type="button" class="btn btn-default btn-save">Save search</button>
+
+      <button type="button" class="btn btn-default btn-save">Save changes</button>
     </form>
   </script>
 

@@ -1,35 +1,18 @@
-var map, CHARING_CROSS = new google.maps.LatLng(51.507222,-0.1275);
-
-function initializeMap() {
-  var mapOptions = {
-    zoom: 12,
-    minZoom: 10,
-    maxZoom: 17,
-    center: CHARING_CROSS
-  }
-  
-  map = new google.maps.Map(document.getElementById('map-canvas'),
-                                mapOptions);
-
-  var boroughs = new google.maps.KmlLayer({
-    url: 'http://housequest.parseapp.com/data/london_boroughs.kml',
-    suppressInfoWindows: true,
-    preserveViewport: true
-  });
-  boroughs.setMap(map);
-
-  var transitLayer = new google.maps.TransitLayer();
-  transitLayer.setMap(map);
-
-  var control = document.getElementById('transit-wpr');
-  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(control);
-
-  google.maps.event.addDomListener(control, 'click', function() {
-    transitLayer.setMap(transitLayer.getMap() ? null : map);
-  });
-};
+var CHARING_CROSS = new google.maps.LatLng(51.507222,-0.1275);
 
 $(function() {
+  var boroughnames = new Bloodhound({
+    datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+    queryTokenizer: Bloodhound.tokenizers.whitespace,
+    prefetch: {
+      url: 'data/boroughnames.json',
+      filter: function(list) {
+        return $.map(list, function(boroughname) {
+          return { name: boroughname }; });
+      }
+    }
+  });
+  boroughnames.initialize();
 
   Parse.$ = jQuery;
 
@@ -61,17 +44,23 @@ $(function() {
     template: _.template($('#search-template').html()),
 
     events: {
+      "change #areas"           : "changeAreas",
       "change .num-beds-select" : "changeNumBeds",
       "change #price-min"       : "changePriceMin",
       "change #price-max"       : "changePriceMax",
       "change #with-photos"     : "changeWithPhotos",
-      "click .btn-save"         : "saveSearch",
-      "change input"            : "performSearch"
+      "click .btn-save"         : "saveSearch"
     },
 
     initialize: function() {
       $(this.el).html(this.template(this.model.toJSON()));
 
+      // bind events
+      _.bindAll(this, 'render', 'performSearch','initializeMap');
+      this.model.bind('change', this.render);
+      this.model.bind('change', this.performSearch);
+
+      // initialize price slider
       $( "#price-slider" ).slider({
         range:true,
         min: 0,
@@ -80,19 +69,123 @@ $(function() {
         values: [ this.model.get("price_min"), this.model.get("price_max") ],
         slide: function( event, ui ) {
           $( "#price-min" ).val(ui.values[0]);
-          $( "#price-min" ).trigger("change");
-          
           $( "#price-max" ).val(ui.values[1]);
-          $( "#price-max" ).trigger("change");
+        },
+        stop: function( event, ui ) {
+          // depending on which value changed, trigger event
+          if (ui.value == ui.values[0])
+            $( "#price-min" ).trigger("change");
+          else
+            $( "#price-max" ).trigger("change");
         }
       });
 
-      _.bindAll(this, 'render');
-      this.model.bind('change', this.render);
+      // initialize area tag input
+      $('#areas').tagsinput({
+        freeInput: false, //only allow typeahead values
+        typeaheadjs: {
+          name: 'boroughnames',
+          displayKey: 'name',
+          valueKey: 'name',
+          source: boroughnames.ttAdapter()
+        }
+      });
+
+      // intialize map
+      this.initializeMap();
+    },
+
+    initializeMap: function() {
+      var self = this;
+
+      var mapOptions = {
+        zoom: 12,
+        minZoom: 10,
+        maxZoom: 17,
+        center: CHARING_CROSS
+      }
+      
+      var map = new google.maps.Map(document.getElementById('map-canvas'),
+                                    mapOptions);
+
+      this.map = map;
+
+      map.data.loadGeoJson('data/boroughGeo.json');
+
+      map.data.setStyle(function(feature) {
+        var strokeOpacity = 0;
+        var fillOpacity = 0
+        if (feature.getProperty('isSelected')) {
+          strokeOpacity = 0.8;
+          fillOpacity = 0.1;
+        }
+        return /** @type {google.maps.Data.StyleOptions} */({
+          fillOpacity: fillOpacity,
+          fillColor: '#2980b9',
+          strokeColor: '#2980b9',
+          strokeOpacity: strokeOpacity,
+          strokeWeight: 3
+        });
+      });
+
+      // When the user clicks, set 'isColorful', changing the color of the letters.
+      map.data.addListener('click', function(event) {
+        var isSelected = !(event.feature.getProperty('isSelected'));
+        var feature = event.feature;
+        feature.setProperty('isSelected', isSelected);
+
+        // add/remove area name from search tags input
+        $('#areas').tagsinput(isSelected ? 'add' : 'remove', event.feature.getProperty('name'));
+
+        // when unselected, remove and add back the polygon
+        // this will remove the outline even though the mouse still hovers over it,
+        if (!isSelected) {
+          map.data.revertStyle();
+          map.data.remove(feature);
+          map.data.add(feature);
+        }
+      });
+
+      map.data.addListener('addfeature', function(event) {
+        var areas = self.model.get("areas");
+        event.feature.setProperty('isSelected', _.contains(areas,event.feature.getProperty("name")));
+      });
+
+      // When the user hovers, tempt them to click by outlining the letters.
+      // Call revertStyle() to remove all overrides. This will use the style rules
+      // defined in the function passed to setStyle()
+      map.data.addListener('mouseover', function(event) {
+        map.data.revertStyle();
+        map.data.overrideStyle(event.feature, {strokeOpacity: 0.8, strokeWeight: 4});
+      });
+
+      map.data.addListener('mouseout', function(event) {
+        map.data.revertStyle();
+      });
+
+      var transitLayer = new google.maps.TransitLayer();
+      transitLayer.setMap(map);
+
+      var control = document.getElementById('transit-wpr');
+      map.controls[google.maps.ControlPosition.TOP_RIGHT].push(control);
+
+      google.maps.event.addDomListener(control, 'click', function() {
+        transitLayer.setMap(transitLayer.getMap() ? null : map);
+      });
     },
 
     render: function() {
       this.delegateEvents();
+    },
+
+    changeAreas: function(e) {
+      this.model.set({areas: e.target.value.split(',')});
+      
+      // update map
+      var areas = this.model.get("areas");
+      this.map.data.forEach(function(feature) {
+        feature.setProperty('isSelected', _.contains(areas,feature.getProperty("name")));
+      });
     },
 
     changeNumBeds: function(e) {
@@ -100,8 +193,6 @@ $(function() {
       var value = parseInt(e.target.value);
 
       beds = e.target.checked ? _.union(beds,[value]) : _.difference(beds,[value]);
-
-      console.log(beds);
       this.model.set({num_beds: beds});
     },
 
@@ -118,14 +209,51 @@ $(function() {
     },
 
     performSearch: function() {
-      console.log("search");
+      var Listing = Parse.Object.extend("Listing");
+      var query = new Parse.Query(Listing);
 
+      if (this.model.get("num_beds").length > 0) {
+        var subQueries = [];
+
+        for (var i = 0; i < this.model.get("num_beds").length; i++) { 
+          var subQuery = new Parse.Query(Listing);
+          subQuery.equalTo("num_bedrooms", this.model.get("num_beds")[i]);
+          subQueries.push(subQuery);
+        }
+
+        query = Parse.Query.or.apply(this, subQueries);
+      }
+
+      if (this.model.get("areas").length > 0) {
+        query.matches("borough", this.model.get("areas").join("|"));
+      }
+
+      query.greaterThanOrEqualTo("price_per_month", this.model.get("price_min"));
+      if (this.model.get("price_max") < 6000) {
+        query.lessThanOrEqualTo("price_per_month", this.model.get("price_max"));
+      }
+
+      if (this.model.get("with_photos")) {
+        query.notEqualTo("image_url","");
+      }
+
+      console.log(query.toJSON());
+
+      query.find({
+        success: function(results) {
+          console.log(results.length);
+
+        },
+        error: function(error) {
+
+        }
+      });
     },
 
     saveSearch: function() {
       this.model.set({group: Parse.User.current().get("group")});
-      console.log(this.model);
-      this.model.save();
+      this.model.save(
+      );
     }
   });
 
@@ -139,7 +267,6 @@ $(function() {
     el: $("#app-container"),
 
     initialize: function() {
-      initializeMap();
       this.render();
     },
 
