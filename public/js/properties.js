@@ -296,18 +296,20 @@ $(function() {
 
     render: function() {
       if (Parse.User.current()) {
-        var searchQuery = new Parse.Query(Search);
-        searchQuery.equalTo("group", Parse.User.current().get("group"));
-
-        searchQuery.first({
-          success: function(search) {
+        Parse.User.current().get("group").fetch(
+        ).then(
+          function(group) {
+            return group.get("search").fetch();
+          }
+        ).then(
+          function(search) {
             if (search) {
               new SearchView({model: search});
             } else {
               new SearchView({model: new Search()});
             }
           }
-        });
+        );
       } else {
         new SearchView({model: new Search()});
       }
