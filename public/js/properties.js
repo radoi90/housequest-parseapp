@@ -201,7 +201,18 @@ $(function() {
     },
 
     changeAreas: function(e) {
-      this.model.set({areas: e.target.value.split(',')});
+      var areas = [];
+
+      // If any, split the area names into array of strings
+      if (e.target.value.length > 0) {
+        areas = e.target.value.split(',');
+      }
+
+      // pressing backspace in the empty area input causes change event
+      // don't updates as it's not necessary, avoid querying
+      if (!(areas.length == 0 && this.model.get("areas").length == 0)) {
+        this.model.set({areas: areas});
+      }
       
       // update map
       var areas = this.model.get("areas");
