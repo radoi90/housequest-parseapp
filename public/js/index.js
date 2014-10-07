@@ -42,31 +42,10 @@ $(function() {
 
       //Ask for default permissions
       Parse.FacebookUtils.logIn('public_profile,email,user_friends', {
-			  success: function(user) {
-
-          //if it's a new user get their Facebook data
-			    if (!user.existed()) {
-
-            FB.api('/me', function(fbData) {
-              var current = Parse.User.current();
-
-              current.set("email", fbData.email);
-              current.set("first_name", fbData.first_name);
-              current.set("last_name", fbData.last_name);
-              current.set("gender", fbData.gender);
-              
-              var userACL = new Parse.ACL();
-              userACL.setRoleReadAccess("Administrator", true);
-              current.set("ACL", userACL);
-
-              var Group = Parse.Object.extend("Group");
-              var userGroup = new Group();
-              current.set("group", userGroup);
-              
-              current.save();
-            });
-			    }
-			  },
+        success: function(user) {
+          // fetch the FB user data
+          Parse.User.current().fetch();
+        },
 			  error: function(user, error) {
 			    self.$(".login-form button").removeAttr("disabled");
 			  }
