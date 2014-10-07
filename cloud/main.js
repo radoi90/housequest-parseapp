@@ -1,6 +1,8 @@
 var zoopla_api_key = 'ws9n766jdafxqb5btb6ad7v8',
 	zoopla_api_url = 'http://api.zoopla.co.uk/api/v1/property_listings.json';
 
+var facebook_api = 'https://graph.facebook.com/v2.1/';
+
 var featureList = ["dishwasher","garden","parking","balcony","gym","swimming pool","gated","bills included"];
 
 Parse.Cloud.job("zooplaClone", function(request, status) {
@@ -413,6 +415,42 @@ Parse.Cloud.beforeSave("Listing", function(request, response) {
 	    response.error("Could not validate uniqueness for this Listing object.");
 	  }
 	});
+});
+
+// Make sure each user belongs to a group
+Parse.Cloud.afterSave(Parse.User, function(request) {
+	Parse.Cloud.useMasterKey();
+
+	if (!request.object.has("group")) {
+		var Group = Parse.Object.extend("Group");
+		var userGroup = new Group();
+		request.object.set("group", userGroup);
+	}
+
+	if (!request.object.has("email")) {
+		Parse.Cloud.httpRequest({
+			url: facebook_api + request.object.get("authData").facebook.id,
+			headers: {
+	    		'Content-Type': 'application/json;charset=utf-8'
+	  		},
+			params: {
+			    fields 			: 'picture.width(200).height(200),first_name,last_name,email,gender',
+			    access_token	: request.object.get("authData").facebook.access_token
+		  	}
+		}).then(
+			function(httpResponse) {
+				request.object.set("first_name", httpResponse.data.first_name);
+				request.object.set("last_name", httpResponse.data.last_name);
+				request.object.set("email", httpResponse.data.email);
+				request.object.set("gender", httpResponse.data.gender);
+				request.object.set("profile_image_url", httpResponse.data.picture.data.url);
+
+				request.object.save();
+			}
+		);
+	} else {
+		request.object.save();
+	}
 });
 
 Parse.Cloud.define("parseDate", function(request, response) {
