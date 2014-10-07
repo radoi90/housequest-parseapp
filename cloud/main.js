@@ -156,7 +156,7 @@ function createListingObject(zooplaData) {
 
 var reachedLimit = false;
 // Zoopla API doesn't return listings sorted by *_published_date, check a few pages after limit
-var extraPagesToGo = 3;
+var extraPagesToGo = 5;
 
 function fetchPage(pageNumber,pageSize,currentJob) {
 	var _ = require('underscore');
