@@ -27,6 +27,7 @@ $(function() {
   var Search = Parse.Object.extend("Search", {
     // Default query parameters.
     defaults: {
+      areas:        [],
       price_min:    0,
       price_max:    6000,
       num_beds:     [0,1,2,3,4],
