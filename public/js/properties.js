@@ -234,23 +234,14 @@ $(function() {
       var Listing = Parse.Object.extend("Listing");
       var query = new Parse.Query(Listing);
 
-      if (this.model.get("num_beds").length > 0) {
-        var subQueries = [];
+      if (this.model.get("num_beds").length > 0)
+        query.containedIn("num_bedrooms", this.model.get("num_beds"));
 
-        for (var i = 0; i < this.model.get("num_beds").length; i++) { 
-          var subQuery = new Parse.Query(Listing);
-          subQuery.equalTo("num_bedrooms", this.model.get("num_beds")[i]);
-          subQueries.push(subQuery);
-        }
+      if (this.model.get("areas").length > 0)
+        query.containedIn("borough", this.model.get("areas"));
 
-        query = Parse.Query.or.apply(this, subQueries);
-      }
+      query.greaterThanOrEqualTo(  "price_per_month",  this.model.get("price_min"));
 
-      if (this.model.get("areas").length > 0) {
-        query.matches("borough", this.model.get("areas").join("|"));
-      }
-
-      query.greaterThanOrEqualTo("price_per_month", this.model.get("price_min"));
       if (this.model.get("price_max") < 6000) {
         query.lessThanOrEqualTo("price_per_month", this.model.get("price_max"));
       }
