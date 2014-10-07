@@ -20,6 +20,27 @@ $(function() {
   Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ",
                    "lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
 
+  // The FeedEntry model is a wrapper to a Listing object
+  var FeedEntry = Parse.Object.extend("FeedEntry", {
+    defaults: {
+      comments: [],
+      users_liked: []
+    },
+
+    // Ensure that each todo created has `content`.
+    initialize: function() {
+      if (!this.get("content")) {
+        this.set({"content": this.defaults.content});
+      }
+    },
+
+    // Toggle the `done` state of this todo item.
+    toggle: function() {
+      this.save({done: !this.get("done")});
+    }
+  });
+
+
   // Search Model
   // ----------
 
