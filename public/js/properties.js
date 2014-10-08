@@ -242,42 +242,19 @@ $(function() {
     },
 
     performSearch: function() {
-      var Listing = Parse.Object.extend("Listing");
-      var query = new Parse.Query(Listing);
-
-      if (this.model.get("num_beds").length > 0)
-        query.containedIn("num_bedrooms", this.model.get("num_beds"));
-
-      if (this.model.get("areas").length > 0)
-        query.containedIn("borough", this.model.get("areas"));
-
-      query.greaterThanOrEqualTo(  "price_per_month",  this.model.get("price_min"));
-
-      if (this.model.get("price_max") < 6000) {
-        query.lessThanOrEqualTo("price_per_month", this.model.get("price_max"));
-      }
-
-      if (this.model.get("with_photos")) {
-        query.notEqualTo("image_url","");
-      }
-
-      console.log(query.toJSON());
-
-      query.find({
-        success: function(results) {
-          console.log(results.length);
-
+      Parse.Cloud.run('performSearch',this.model.toJSON(), {
+        success: function(count) {
+          console.log(count);
         },
         error: function(error) {
 
         }
-      });
+      })
     },
 
     saveSearch: function() {
       this.model.set({group: Parse.User.current().get("group")});
-      this.model.save(
-      );
+      this.model.save();
     }
   });
 

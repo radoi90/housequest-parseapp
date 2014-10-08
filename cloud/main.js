@@ -399,7 +399,40 @@ function trimText(s) {
 
 var Listing = Parse.Object.extend("Listing");
 
-// Enforce uniqueness based on the listing_id column.
+var FeedEntry = Parse.Object.extend("FeedEntry");
+
+Parse.Cloud.define("performSearch", function(request, response) {
+	var query = new Parse.Query(Listing);
+
+	if (request.params.num_beds.length > 0) {
+		query.containedIn("num_bedrooms", request.params.num_beds);
+	}
+
+	if (request.params.areas.length > 0) {
+		query.containedIn("borough", request.params.areas);
+	}
+
+	query.greaterThanOrEqualTo("price_per_month", request.params.price_min);
+
+	if (request.params.price_max < 6000) {
+		query.lessThanOrEqualTo("price_per_month", request.params.price_max);
+	}
+
+	if (request.params.with_photos) {
+		query.notEqualTo("image_url","");
+	}
+
+	query.find({
+        success: function(results) {
+        	response.success(results.length);
+        },
+        error: function(error) {
+        	response.error(error);
+        }
+      });
+});
+
+// Enforce uniqueness based on the listing_id column, perform other checks
 Parse.Cloud.beforeSave("Listing", function(request, response) {
 	var query = new Parse.Query(Listing);
 	query.equalTo("listing_id", request.object.get("listing_id"));
@@ -451,41 +484,4 @@ Parse.Cloud.afterSave(Parse.User, function(request) {
 	} else {
 		request.object.save();
 	}
-});
-
-Parse.Cloud.define("parseDate", function(request, response) {
-	var moment = require('moment');
-
-	var now = moment("<li>Available from 8th Oct 2014</li>",["DD MMM YYYY", "MMM DD YYYY", "MM-DD-YYYY", "YYYY-MM-DD"]);
-
-	now.year(2014);
-	console.log(now.toDate().toString());
-
-	response.success('done');
-});
-
-Parse.Cloud.define("scrape", function(request, response) {
-    var urls = [
-                'http://www.zoopla.co.uk/to-rent/details/34739986',
-                'http://www.zoopla.co.uk/to-rent/details/11444525',
-                'http://www.zoopla.co.uk/to-rent/details/19117018'];
-
-    var promises = []
-
-    for (var i = 0; i < urls.length; i++) {
-        promises.push(
-            Parse.Cloud.httpRequest({
-              url: urls[i]
-            })
-        );
-    }
-
-    Parse.Promise.when(promises).then(function() {
-        for (var i = 0; i < arguments.length; i++) {
-            console.log(arguments[i].text.length);
-        }
-        
-        console.log("hola");
-        response.success('Scrapes done');
-    });
 });
