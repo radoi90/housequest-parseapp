@@ -174,7 +174,9 @@ function fetchPage(pageNumber,pageSize,currentJob) {
     		'Content-Type': 'application/json;charset=utf-8'
   		},
 		params: {
-		    area 			: 'London',
+			latitude		: 51.507222,
+			longitude		: -0.1275,
+			radius			: 17,
 		    listing_status	: 'rent',
 		    page_size		: pageSize,
 		    page_number		: pageNumber,
@@ -434,6 +436,10 @@ Parse.Cloud.define("performSearch", function(request, response) {
 
 // Enforce uniqueness based on the listing_id column, perform other checks
 Parse.Cloud.beforeSave("Listing", function(request, response) {
+	// make sure listing is in London
+	if (!request.object.has("borough"))
+		response.error("Listing is not within a London Borough.");
+	
 	var query = new Parse.Query(Listing);
 	query.equalTo("listing_id", request.object.get("listing_id"));
 	query.first({
