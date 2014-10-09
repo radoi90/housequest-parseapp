@@ -191,6 +191,7 @@ $(function() {
 
       // intialize map
       this.initializeMap();
+      this.performSearch();
     },
 
     initializeMap: function() {
