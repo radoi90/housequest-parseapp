@@ -500,6 +500,36 @@ Parse.Cloud.beforeSave("Listing", function(request, response) {
 	}
 });
 
+// Propagate FeedEntry changes to the Listing model if needed
+Parse.Cloud.beforeSave("FeedEntry", function(request, response) {
+	var _ = require("underscore");
+
+	// check if any changes to Listing are needed
+	if (request.object.dirty("users_seen") || request.object.dirty("users_liked")) {
+		Parse.Cloud.useMasterKey();
+
+		if (request.object.dirty("users_seen")) {
+			request.object.get("listing").increment("num_seen");
+		}
+
+		if (request.object.dirty("users_liked")) {
+			var diff = _.contains(request.object.get("users_liked"), request.user) ? 1 : -1;
+
+			var diff = _.chain(request.object.get("users_liked"))
+				.map(function(user) { return user.id })
+				.contains(request.user.id)
+				.value() ? 1 : -1;
+
+			request.object.get("listing").increment("num_likes", diff);
+		}
+
+		request.object.get("listing").save().then(
+			function(){response.success();},
+			function(){response.error();}
+		);
+	} else {
+		response.success();
+	}
 });
 
 // Make sure each user belongs to a group
