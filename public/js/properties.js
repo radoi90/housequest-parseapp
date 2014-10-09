@@ -24,19 +24,62 @@ $(function() {
   var FeedEntry = Parse.Object.extend("FeedEntry", {
     defaults: {
       comments: [],
-      users_liked: []
+      users_liked: [],
+      users_seen: []
     },
 
     // Ensure that each todo created has `content`.
-    initialize: function() {
-      if (!this.get("content")) {
-        this.set({"content": this.defaults.content});
+    initialize: function(listing) {
+      this.set("listing", listing);
+    },
+
+    seeDetails: function() {
+      if (Parse.User.current() && !(this.seenByCurrentUser())) {
+        this.addUnique("users_seen", Parse.User.current());
+        this.save();
       }
     },
 
-    // Toggle the `done` state of this todo item.
-    toggle: function() {
-      this.save({done: !this.get("done")});
+    // Checks if current signed in User has seen the Listing details
+    seenByCurrentUser: function() {
+      if (Parse.User.current()) {
+        return _.chain(this.get("users_seen"))
+                .map(function (user) { return user.id })
+                .contains(Parse.User.current().id)
+                .value();
+      } else {
+        return false;
+      }
+    },
+
+    // Toggle the `like` state of this FeedEntry item.
+    like: function() {
+      if (Parse.User.current()) {
+        
+        if (this.likedByCurrentUser()) {
+          // unlike
+          this.remove("users_liked", Parse.User.current());
+        } else {
+          // like
+          this.addUnique("users_liked", Parse.User.current());
+        }
+        
+        this.save();  
+      } else {
+        //TODO: implement ask user to login
+      }
+    },
+
+    // Checks if current signed in User likes it
+    likedByCurrentUser: function() {
+      if (Parse.User.current()) {
+        return _.chain(this.get("users_liked"))
+                .map(function (user) { return user.id })
+                .contains(Parse.User.current().id)
+                .value();
+      } else {
+        return false;
+      }
     }
   });
 
