@@ -85,6 +85,7 @@ Parse.Cloud.job("zooplaClone", function(request, status) {
 });
 
 function createJob(prevJob) {
+	Parse.Cloud.useMasterKey();
 	var FetchJob = Parse.Object.extend("FetchJob");
 	var newJob = new FetchJob();
 	
@@ -106,6 +107,7 @@ function createJob(prevJob) {
 }
 
 function createListingObject(zooplaData) {
+	Parse.Cloud.useMasterKey();
 	var geometry = require('cloud/boroughs.js');
 
 	var Listing = Parse.Object.extend("Listing");
@@ -148,10 +150,20 @@ function createListingObject(zooplaData) {
 	delete zooplaData.longitude;
 	delete zooplaData.post_town;
 	delete zooplaData.price;
+	delete zooplaData.price_modifier;
 	delete zooplaData.rental_prices;
 
 	listing.set(zooplaData);
 	listing.set("source","Zoopla");
+	listing.set("num_likes", 0);
+	listing.set("num_seen", 0);
+
+	//Only allow read access to Listing model
+	var listingACL = new Parse.ACL();
+	listingACL.setPublicReadAccess(true);
+	listingACL.setPublicWriteAccess(false);
+
+	listing.setACL(listingACL);
 
 	return listing;
 }
@@ -161,6 +173,7 @@ var reachedLimit = false;
 var extraPagesToGo = 5;
 
 function fetchPage(pageNumber,pageSize,currentJob) {
+	Parse.Cloud.useMasterKey();
 	var _ = require('underscore');
 
 	console.log("Fetching listings: " + pageSize * (pageNumber - 1) + "-" + pageSize * pageNumber);
@@ -230,6 +243,8 @@ function fetchPage(pageNumber,pageSize,currentJob) {
 		}
 	).then(
 		function() {
+			Parse.Cloud.useMasterKey();
+
 			console.log("Scraping listing HTML pages");
 			// Parse the html for all the visited pages, add data to listing object
 			for(var i = 0; i < arguments.length; i++) {
@@ -426,34 +441,65 @@ Parse.Cloud.define("performSearch", function(request, response) {
 
 	query.find({
         success: function(results) {
-        	response.success(results.length);
+        	response.success(results);
         },
         error: function(error) {
         	response.error(error);
         }
-      });
+    });
 });
 
 // Enforce uniqueness based on the listing_id column, perform other checks
 Parse.Cloud.beforeSave("Listing", function(request, response) {
-	// make sure listing is in London
-	if (!request.object.has("borough"))
-		response.error("Listing is not within a London Borough.");
-	
-	var query = new Parse.Query(Listing);
-	query.equalTo("listing_id", request.object.get("listing_id"));
-	query.first({
-	  success: function(object) {
-	    if (object) {
-	      	response.error("Listing already exists");
-	    } else {
-	      	response.success();
-	    }
-	  },
-	  error: function(error) {
-	    response.error("Could not validate uniqueness for this Listing object.");
-	  }
-	});
+	Parse.Cloud.useMasterKey();
+
+	if (request.object.isNew()) {
+		// make sure listing is in London
+		if (!request.object.has("borough")) {
+			response.error("Listing is not within a London Borough.");
+		}
+		
+		var query = new Parse.Query(Listing);
+		query.equalTo("listing_id", request.object.get("listing_id"));
+		query.first({
+		  success: function(object) {
+		    if (object) {
+		    	// check if it's a Zoopla update
+		    	if (object.get("last_published_date").toString() !== request.object.get("last_published_date").toString()) {
+		    		object.set("last_published_date", 	request.object.get("last_published_date"));
+		    		object.set("price_per_month", 		request.object.get("price_per_month"));
+		    		object.set("price_per_week", 		request.object.get("price_per_week"));
+		    		object.set("description", 			request.object.get("description"));
+		    		object.set("image_url", 			request.object.get("image_url"));
+		    		object.set("thumbnail_url", 		request.object.get("thumbnail_url"));
+		    		object.set("available_from", 		request.object.get("available_from"));
+		    		object.set("batchNo", 				request.object.get("batchNo"));
+
+		    		object.save({
+		    			success: function(listing) {
+		    				response.error("Updated existing listing " + listing.get("listing_id"));
+		    			},
+		    			error: function() {
+		    				response.error("Failed to update listing " + request.object.get("listing_id"));
+		    			}
+		    		});
+		    	} else {
+		    		response.error("Listing already exists");
+		    	}
+		    } else {
+		      	response.success();
+		    }
+		  },
+		  error: function(error) {
+		    response.error("Could not validate uniqueness for this Listing object.");
+		  }
+		});
+	} else {
+		// allow updates
+		response.success();
+	}
+});
+
 });
 
 // Make sure each user belongs to a group
