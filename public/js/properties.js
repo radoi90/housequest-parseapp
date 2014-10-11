@@ -328,6 +328,14 @@ $(function() {
 
       if (this.model.get("areas").length > 0) {
         query.containedIn("borough", this.model.get("areas"));
+      } else {
+        var SW = this.map.getBounds().getSouthWest();
+            SW = new Parse.GeoPoint(SW.lat(), SW.lng());
+        var NE = this.map.getBounds().getNorthEast();
+            NE = new Parse.GeoPoint(NE.lat(), NE.lng());
+        console.log(SW);
+        console.log(NE);
+        query.withinGeoBox("location", SW, NE)
       }
 
       query.greaterThanOrEqualTo("price_per_month", this.model.get("price_min"));
