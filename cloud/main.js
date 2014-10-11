@@ -91,7 +91,7 @@ function createJob(prevJob) {
 	
 	// Date limit is properties 3 days old, applies to inception job.
 	var dateLimit = new Date();
-	dateLimit.setDate(dateLimit.getDate() - 3);
+	dateLimit.setDate(dateLimit.getDate() - 1);
 	
 	newJob.set({
 		source		: "Zoopla",
