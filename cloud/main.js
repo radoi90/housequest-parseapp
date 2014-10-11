@@ -254,7 +254,9 @@ function fetchPage(pageNumber,pageSize,currentJob) {
 				delete arguments[i].text;
 
 				if (connectionStatus == "200") {
-					listing.set("image_urls", extractImageURLs(htmlString)); 
+					var imageUrlArray = extractImageURLs(htmlString);
+					listing.set("image_urls", imageUrlArray); 
+					listing.set("num_images", imageUrlArray.length);
 					htmlString = trimText(htmlString).toLowerCase(); // keep only relevant text
 
 					listing.set("available_from", extractAvailabilityDate(htmlString));
