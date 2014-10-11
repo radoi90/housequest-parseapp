@@ -4,23 +4,86 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0;">
 	<title>HouseQuest - The best way to find your house in London</title>
 
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/animate.css">
+	<link rel="stylesheet" href="css/welcome.css" type="text/css">
+
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 	<script src="js/underscore.js"></script>
 	<script src="http://www.parsecdn.com/js/parse-1.2.13.min.js"></script>
-	<script src="js/pace.min.js"></script>
 	<script src="js/index.js"></script>
+
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','http://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-37859939-3', 'auto');
+	  ga('send', 'pageview');
+	</script>
 </head>
-	<body>
-		<div id="mainapp">
-			<div class="title">
-				<h1>HouseQuest</h1>
+<body>
+	<!-- Navbar -->
+	<nav class="navbar navbar-default" role="navigation">
+	  <div class="container-fluid animated fadeInDown">
+
+	    <!-- Brand and toggle get grouped for better mobile display -->
+	    <div class="navbar-header">
+		  <div class="navbar-brand">House<span class="Q">Q</span>uest</div>
+	      <button type="button" id="nav-button-mini" class="btn-flat btn-login-mini btn-orange" onclick="loginButtonPressed();"></button>
+	    </div>
+
+	    <!-- Collect the nav links, forms, and other content for toggling -->
+	    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+	      <ul class="nav navbar-nav">
+	      	<li><a class="title hidden-xs" href="#">House<span class="Q">Q</span>uest</a></li>
+	      	<li class="pull-right button-container">
+	      		
+	      	</li>
+	      </ul>
+	    </div><!-- /.navbar-collapse -->
+	  </div><!-- /.container-fluid -->
+	</nav>
+
+	<div class="overlay">
+		<!-- Main page -->
+		<div class="container">
+			<div id="banner-text" class="animated fadeIn">
+				Search, don't hunt for properties
 			</div>
-			<div class="content">
-      </div>
+
+			<div id="action-box" class="centered row animated fadeIn">
+				<div class="row">
+					<a href="/search.html?num_beds=0" class="btn btn-flat btn-search">Studios</a>
+					<a href="/search.html?num_beds=1" class="btn btn-flat btn-search">1 bed</a>
+					<a href="/search.html?num_beds=2" class="btn btn-flat btn-search">2 bed</a>
+					<a href="/search.html?num_beds=3" class="btn btn-flat btn-search">3 bed</a>
+					<a href="/search.html?num_beds=4" class="btn btn-flat btn-search">4+ bed</a>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-4 banner-text-sub animated fadeIn">
+					<h1>Connected</h1>
+					<p>Keep your search and results synced with your housemates</p>
+				</div>
+
+				<div class="col-md-4 banner-text-sub animated fadeIn">
+					<h1>Transparent</h1>
+					<p>See all the fees and taxes upfront for an informed decision</p>
+				</div>
+
+				<div class="col-md-4 banner-text-sub animated fadeIn">
+					<h1>Up to date</h1>
+					<p>Listings always fresh, automatically checked for availability</p>
+				</div>
+				
+			</div>
 		</div>
-	</body>
+	</div>
 
 	<!-- Templates -->
 	<script type="text/template" id="login-template">
@@ -28,4 +91,5 @@
 	    <button id="login-fb-btn">Login with Facebook</button>
 	  </div>
 	</script>
+</body>
 </html>

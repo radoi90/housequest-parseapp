@@ -58,63 +58,13 @@ body {
 	font-family: AvenirNext LT Pro Regular;
 }
 
-.info-form {
-	position:absolute;
-	top:114px;
-	display: none;
-	width: 100%;
-}
-
 .row-fluid {
 	margin-left: auto;
     margin-right: auto;
     width: 100%;
 }
 
-.info-form {
-	display: none;
-	position:absolute;
-	top:114px;
-	display: none;
-	width: 100%;
-}
-
-.success-form {
-	display: none;
-	position:absolute;
-	top:114px;
-	display: none;
-	width: 100%;
-}
-
-#success-box {
-	border-radius: 6px;
-	/* Rectangle 9: */
-	background: rgba(255,255,255,0.33);
-	height: 450px;
-	width: 400px;
-
-	padding: 10px;
-	
-	position: relative;
-	left: 50%;
-	margin-left: -200px;
-}
-
-#success-box-solid {
-	border-radius: 5px;
-	/* Rectangle 11: */
-	background: #FFFFFF;
-	-moz-box-shadow:    0px 2px 0px 0px #8E8E8E;
-	box-shadow:         0px 2px 0px 0px #8E8E8E;
-	
-	color: #000;
-	height: 430px;
-
-	padding: 10px;
-}
-
-#content {
+.button-container {
 	margin-top: 100px;
 }
 
@@ -189,118 +139,19 @@ body {
 	position: relative;
 	overflow:hidden
 }
-
-p.cost-disclaimer {
-	color: #f1c40f;
-	font-size: 13px;
-}
-
-#options-panel:before {
-	content: "";
-	position: absolute;
-	top: -15px;
-	right: 0;
-	
-	width: 240px;
-	height: 20px;
-
-	background-image: url("../img/options-box.png");
-	background-size: contain;
-	background-repeat: no-repeat;
-}
-
-#options-panel {
-	position: absolute;
-	right: 40px;
-	z-index: 1;
-	top: 100px;
-	/* height: 240px; */
-	width: 240px;
-	/* background-image: url("../img/login-box.png"); */
-	background-size: contain;
-	background-repeat: no-repeat;
-	padding: 15px;
-	/*padding-top: 30px;*/
-	background: white;
-	border: 0;
-	border-radius: 8px;
-	border-bottom: 2px solid #494949;
-}
-
-.login-control {
-	margin-bottom: 10px;
-	border-radius: 5px;
-	/* Rectangle 11: */
-	background: #FFFFFF;
-	border: 1px solid #2C3E50;
-	width: 100%;
-
-	font-family: AvenirNext LT Pro Medium;
-	padding-left: 5px;
-	height: 30px;
-}
-
-.login-control:focus {
-	outline: none;
-}
-
-#btn-login {
-	width: 100%;
-}
-
-.user-icon {
-	padding: 0 10px;
-	float: left;
-}
-
-a.reset-password {
-	display: block;
-	margin-top: 10px;
-	font-size: 12px;
-}
-
-.login-form .reset-message {
-	padding-bottom: 10px;
-}
-
-.login-form .error {
-	border: 1px solid red;
-    background: #FDEFF0;
-    padding: 5px 15px;
-    margin-bottom: 10px;
-}
-
-.login-form .success {
-    border: 1px solid green;
-    background: #F3FFF3;
-    padding: 5px 15px;
-    margin-bottom: 15px;
-}
-
-.success {
-	padding-bottom: 10px;
-}
-
-.form-group {
-	margin-bottom: 0;
-}
-
 .navbar {
   background: transparent;
   border: none;
   border-radius: 0;
 }
-
 .navbar-nav {
   width: 100%;
   text-align: center;
 }
-
 .navbar-nav > li {
   float: none;
   display: inline-block;
 }
-
 .text-center {
 	font-family: AvenirNext LT Pro Demi;
 	font-size: 40px;
@@ -310,7 +161,6 @@ a.reset-password {
 	text-shadow: 0px 2px 0px rgba(0,0,0,0.50);
 	margin-bottom: 35px;
 }
-
 .navbar-header {
     float: left;
     padding: 15px;
@@ -318,21 +168,15 @@ a.reset-password {
     width: 100%;
 }
 
-.tooltip-inner {
-	max-width: 300px;
-}
-
 @media (min-width: 768px) {
   .navbar-header {
     display: none;
   }
-
   .nav-login {
     position: absolute;
     right: 30px;
     top: 10px;
   }
-
   .nav .pull-right {
     position: absolute;
     right: 36px;
@@ -349,13 +193,10 @@ a.reset-password {
   text-shadow: 0px 4px #000;
   font-weight: normal;
 }
-
 ul.nav a:hover { color: #fff !important; }
-
 .navbar-brand .Q {
   font-size: 34px;
 }
-
 .navbar-default .navbar-nav>li>a {
   color: #fff;
   font-family: 'molotregular';
@@ -364,7 +205,6 @@ ul.nav a:hover { color: #fff !important; }
   font-weight: normal;
   line-height: 80px;
 }
-
 .title .Q {
   font-size: 60px;
 }
@@ -382,14 +222,12 @@ ul.nav a:hover { color: #fff !important; }
 	cursor: pointer;
 	font-family: AvenirNext LT Pro Medium;
 }
-
 .btn-flat:active {
   top: 1px;
   outline: none;
   -webkit-box-shadow: none;
   box-shadow: none;
 }
-
 .btn-orange {
   background: #f1c40f;
   border-bottom: 1px solid #A0861D;
@@ -397,7 +235,6 @@ ul.nav a:hover { color: #fff !important; }
   box-shadow: inset 0 -2px #A0861D;
   outline: none;
 }
-
 .btn-green {
 	background: #2ECC71;
 	border-bottom: 1px solid #1B7240;
@@ -405,7 +242,6 @@ ul.nav a:hover { color: #fff !important; }
 	box-shadow: inset 0 -2px #1B7240;
 	outline: none;
 }
-
 .btn-login-mini {
 	float: right;
 	margin-right: -30px;
@@ -414,300 +250,22 @@ ul.nav a:hover { color: #fff !important; }
 	font-size: 14px;
 	height: 30px;
 }
-
 .btn-green:active {
 	top: 1px;
 	outline: none;
 	-webkit-box-shadow: none;
 	box-shadow: none;
 }
-
 .btn-find-container {
 	width: 35%;
-	float: right;
 }
-
 .btn-find {
 	font-size: 18px;
 	height: 42px;
-	float: right;
 }
-
 .btn-next {
 	width: 160px;
 	padding-left: -5px;
 	margin-top: 30px;
 	font-size: 0.6em;
 }
-
-.email-container {
-	width: 65%;
-	float: left;
-}
-
-/* Personal form */
-.form-control {
-	/* Rectangle 11: */
-	background: #FFFFFF;
-	-moz-box-shadow:    0px 3px 0px 0px #34495E;
-	box-shadow:         0px 3px 0px 0px #34495E;
-
-	border: none;
-
-	height: 38px;
-	line-height: 30px;
-	margin-bottom: 15px;
-
-	font-family: AvenirNext LT Pro Medium;
-	font-size: 18px;
-}
-
-input.form-control:focus, select.form-control:focus{
-    border-color: #cccccc;
-    -webkit-box-shadow: none;
-	/* Rectangle 11: */
-	background: #FFFFFF;
-	-moz-box-shadow:    0px 3px 0px 0px #34495E;
-	box-shadow:         0px 3px 0px 0px #34495E;
-	border: none;
-
-	height: 38px;
-	line-height: 30px;
-
-	font-family: AvenirNext LT Pro Medium;
-	font-size: 18px;
-	color: #34495e;
-}
-
-.form-control::-webkit-input-placeholder { color: #95a5a6; }
-
-.control-label {
-	font-family: AvenirNext LT Pro Medium;
-	font-size: 16px;
-	color: #FFFFFF;
-	line-height: 25px;
-	/* First name: */
-	text-shadow: 0px 1px 0px #34495E;
-	margin-bottom: 5px !important;
-	font-size: 18px !important;
-	font-weight: 20 !important;
-}
-
-form .error {
-    border: 1px solid red;
-    background: #FDEFF0;
-    padding: 5px 15px;
-    margin-bottom: 15px;
-}
-
-#progress-bar-1 {
-	background-image: url("../img/progress-1.png");
-	height: 120px;
-	
-	background-size: contain;
-	background-position: center;
-	background-repeat: no-repeat;
-
-	margin-left: 20%;
-	margin-right: 20%;
-}
-
-#progress-bar-2 {
-	background-image: url("../img/progress-2.png");
-	height: 120px;
-	
-	background-size: contain;
-	background-position: center;
-	background-repeat: no-repeat;
-
-	margin-left: 20%;
-	margin-right: 20%;
-}
-
-#progress-bar-3 {
-	background-image: url("../img/progress-2.png");
-	height: 120px;
-	
-	background-size: contain;
-	background-position: center;
-	background-repeat: no-repeat;
-
-	margin-left: 20%;
-	margin-right: 20%;
-}
-
-#thumb {
-	position: relative;
-	left: 50%;
-	margin-left:-40px;
-	margin-bottom: 20px;
-	margin-top: 20px;
-}
-
-#line {
-	position: relative;
-	left: 50%;
-	margin-left:-100px;
-	margin-bottom: 20px;
-}
-
-#awesome {
-	font-family: AvenirNext LT Pro Demi;
-font-size: 40px;
-color: #34495E;
-line-height: 48px;
-text-align: center;
-/* Awesome!: */
-}
-
-#awesome-sub-text {
-	font-family: AvenirNext LT Pro Demi;
-font-size: 20px;
-text-align: center;
-color: #34495E;
-line-height: 26px;
-padding: 20px;
-/* Sit back and relax.: */
-}
-
-
-label .control-label {
-	font-family: AvenirNext LT Pro Medium;
-	font-size: 16px;
-	color: #FFFFFF;
-	line-height: 22px;
-	/* First name: */
-	text-shadow: 0px 1px 0px #34495E;
-	margin-bottom: 5px !important;
-	font-size: 20px !important;
-	font-weight: 20 !important;
-}
-
-.overlay {
-	min-height: 80%;
-}
-
-.greywrap {
-	background: #f5f5f5;
-	padding-top: 40px;
-	padding-bottom: 40px;
-	border-bottom: 1px solid #ddd;
-	text-align: center;
-}
-
-.copyright {
-	background: #f5f5f5;
-	padding-top: 20px;
-}
-
-.copyright p {
-	width: 100%;
-	text-align: center;
-}
-
-/* Mobile */
-/* Smartphones (portrait) ----------- */
-@media only screen and (max-width : 520px) {
-	.container {
-		margin-top: 0px;
-	}
-
-	#action-box {
-		width: 100%;
-		left: 0;
-		margin-left: 0;
-	}
-
-	#action-box .form-control {
-		margin-bottom: 15px;
-	}
-
-	#banner-text {
-		margin: 0;
-		font-size: 42px;
-		line-height: 45px;
-	}
-
-	.banner-text-sub {
-		font-size: 14px;
-		line-height: 20px;
-	}
-
-	#action-box {
-		margin-top: 10px;
-	}
-
-	.email-container {
-		width: 100%;
-	}
-
-	.btn-find-container {
-		width: 100%;
-	}
-
-	.info-form {
-		top: none;
-	}
-
-	#progress-bar-1 {
-		margin-left: 0;
-		margin-right: 0;
-	}
-	
-	#progress-bar-2 {
-		margin-left: 0;
-		margin-right: 0;
-	}
-	
-	#progress-bar-3 {
-		margin-left: 0;
-		margin-right: 0;
-	}
-
-	.text-center {
-		line-height: 15px;
-	}
-
-	.navbar-toggle {
-		margin-right: 0px;
-	}
-
-	#success-box {
-		left: 0;
-		margin-left: 0;
-		width: 100%;
-	}
-
-	#where-box {
-		font-size: 13px;
-		line-height: 20px;
-	}
-
-	#where {
-		font-size: 20px;
-		line-height: 30px;
-	}
-	
-	.tm-tag {
-		font-size: 12px;
-		line-height: 15px;
-	}
-
-	.btn-find {
-		height: 40px;
-		font-size: 1em;
-		margin: 0px;
-		width: 100%;
-	}
-}
-
-@media only screen and (max-width: 767px) {
-	#options-panel:before {
-		background-image: url("../img/options-box-mobile.png");
-	}
-
-	#options-panel {
-		top: 85px;
-	}
-}
-
