@@ -91,29 +91,21 @@ $(function() {
     // Reference to this collection's model.
     model: FeedEntry,
 
-    // Filter down the list of all todo items that are finished.
-    done: function() {
-      return this.filter(function(todo){ return todo.get('done'); });
-    },
+    // // Filter down the list of all todo items that are finished.
+    // done: function() {
+    //   return this.filter(function(todo){ return todo.get('done'); });
+    // },
 
-    // Filter down the list to only todo items that are still not finished.
-    remaining: function() {
-      return this.without.apply(this, this.done());
-    },
-
-    // We keep the Todos in sequential order, despite being saved by unordered
-    // GUID in the database. This generates the next order number for new items.
-    nextOrder: function() {
-      if (!this.length) return 1;
-      return this.last().get('order') + 1;
-    },
+    // // Filter down the list to only todo items that are still not finished.
+    // remaining: function() {
+    //   return this.without.apply(this, this.done());
+    // },
 
     // Entries are sorted by the listing published date/price
     comparator: function(entry) {
       //TODO: add more types of compare
       return entry.get('listing').get('last_published_date');
     }
-
   });
 
 
