@@ -30,7 +30,7 @@ $(function() {
       "click #login-fb-btn": "logInFb",
     },
 
-    el: ".content",
+    el: ".button-container",
     
     initialize: function() {
       _.bindAll(this, "logInFb");
@@ -74,7 +74,7 @@ $(function() {
 
 		render: function() {
       if (Parse.User.current()) {
-        window.location.href = 'search.html';
+        
       } else {
         new LogInView();
       }
