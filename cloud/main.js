@@ -370,7 +370,7 @@ function extractAvailabilityDate(s) {
 function extractFeatures(s, list) {
 	var _ = require('underscore');
 
-	return _.filter(list, function(word){return (s.indexOf(word) >= 0)});
+	return _.filter(list, function (word) {return (s.indexOf(word) >= 0)});
 }
 
 function extractFurnishedStatus(s) {
@@ -506,11 +506,11 @@ Parse.Cloud.beforeSave("Listing", function(request, response) {
 });
 
 // Propagate FeedEntry changes to the Listing model if needed
-Parse.Cloud.beforeSave("FeedEntry", function(request, response) {
+Parse.Cloud.beforeSave("FeedEntry", function (request, response) {
 	var _ = require("underscore");
 
 	// check if any changes to Listing are needed
-	if (request.object.dirty("users_seen") || request.object.dirty("users_liked")) {
+	if (!request.master && (request.object.dirty("users_seen") || request.object.dirty("users_liked"))) {
 		Parse.Cloud.useMasterKey();
 
 		if (request.object.dirty("users_seen")) {
@@ -538,7 +538,7 @@ Parse.Cloud.beforeSave("FeedEntry", function(request, response) {
 });
 
 // Make sure each user belongs to a group
-Parse.Cloud.afterSave(Parse.User, function(request) {
+Parse.Cloud.afterSave(Parse.User, function (request) {
 	Parse.Cloud.useMasterKey();
 
 	if (!request.object.has("group")) {
