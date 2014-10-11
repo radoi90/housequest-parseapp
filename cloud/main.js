@@ -423,7 +423,7 @@ var Listing = Parse.Object.extend("Listing");
 
 var FeedEntry = Parse.Object.extend("FeedEntry");
 
-Parse.Cloud.define("performSearch", function(request, response) {
+Parse.Cloud.define("performSearch", function (request, response) {
 	var query = new Parse.Query(Listing);
 
 	if (request.params.num_beds.length > 0) {
@@ -455,31 +455,37 @@ Parse.Cloud.define("performSearch", function(request, response) {
 });
 
 // Enforce uniqueness based on the listing_id column, perform other checks
-Parse.Cloud.beforeSave("Listing", function(request, response) {
+Parse.Cloud.beforeSave("Listing", function (request, response) {
 	Parse.Cloud.useMasterKey();
 
+	// Object is new if added by scraper (or Data Manager)
 	if (request.object.isNew()) {
 		// make sure listing is in London
 		if (!request.object.has("borough")) {
 			response.error("Listing is not within a London Borough.");
 		}
 		
+		// check if this listing_id already exists
 		var query = new Parse.Query(Listing);
 		query.equalTo("listing_id", request.object.get("listing_id"));
 		query.first({
-		  success: function(object) {
+		  success: function  (object) {
 		    if (object) {
-		    	// check if it's a Zoopla update
+		    	// check if there have been any updates to the version we already have 
 		    	if (object.get("last_published_date").toString() !== request.object.get("last_published_date").toString()) {
+		    		// add fields that might have been updated
 		    		object.set("last_published_date", 	request.object.get("last_published_date"));
 		    		object.set("price_per_month", 		request.object.get("price_per_month"));
 		    		object.set("price_per_week", 		request.object.get("price_per_week"));
 		    		object.set("description", 			request.object.get("description"));
 		    		object.set("image_url", 			request.object.get("image_url"));
+		    		object.set("image_urls",			request.object.get("image_urls"));
+		    		object.set("num_images",			request.object.get("num_images"));
 		    		object.set("thumbnail_url", 		request.object.get("thumbnail_url"));
 		    		object.set("available_from", 		request.object.get("available_from"));
 		    		object.set("batchNo", 				request.object.get("batchNo"));
 
+		    		// save updates to existing object, block the new object from being saved
 		    		object.save({
 		    			success: function(listing) {
 		    				response.error("Updated existing listing " + listing.get("listing_id"));
@@ -489,9 +495,11 @@ Parse.Cloud.beforeSave("Listing", function(request, response) {
 		    			}
 		    		});
 		    	} else {
+		    		// trying to save a duplicate, block
 		    		response.error("Listing already exists");
 		    	}
 		    } else {
+		    	// saving listing_id for the first time, allow
 		      	response.success();
 		    }
 		  },
@@ -500,7 +508,7 @@ Parse.Cloud.beforeSave("Listing", function(request, response) {
 		  }
 		});
 	} else {
-		// allow updates
+		// if Object is not new, its attr are being updated, allow
 		response.success();
 	}
 });
