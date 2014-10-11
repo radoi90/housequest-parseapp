@@ -348,20 +348,23 @@ function extractImageURLs(s) {
 
 function extractAvailabilityDate(s) {
 	var moment = require('moment');
-	var startIndex = s.indexOf("available immediately");
+	var startIndex = Math.max(s.indexOf("available immediately"), s.indexOf("available now"));
 
 	if (startIndex >= 0)
 		return new Date();
 
-	var startIndex = Math.max(s.indexOf("available from"),0);
-	var text = s.substr(startIndex);
+	var startIndex = s.indexOf("available from");
+	if (startIndex >= 0) {
+		var text = s.substr(startIndex);
+		var now = moment(text,"DD MMM YYYY");
+		
+		//if year missing set to current
+		now.year((new Date()).getFullYear());
 
-	var now = moment(text,"DD MMM YYYY");
-	
-	//if year missing set to current
-	now.year((new Date()).getFullYear());
+		return now.toDate();
+	}
 
-	return now.toDate();
+	return new Date();
 }
 
 function extractFeatures(s, list) {
