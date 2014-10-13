@@ -43,22 +43,11 @@
   font-weight:  400;
 }
 
-html {
-  height: 100%;
-  overflow-x: hidden;
-  background: url("../img/easteregg.jpg") no-repeat center center fixed; 
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-}
 body {
   background-color:white;
   height: 100%;
   font-family: AvenirNext LT Pro Regular;
 }
-
-/* main layout */
 .height-full {
   height: 100%;
 }
@@ -66,17 +55,13 @@ body {
    padding: 0 !important;
    margin: 0 !important;
 }
-#app-container {
-  position: absolute;
-  top: 51px;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.centered {
+  text-align: center;
 }
 
 /* Progress bar */
 .pace .pace-progress {
-  background: #E85B2E;
+  background: #f1c40f;
   position: fixed;
   z-index: 2000;
   top: 0;
@@ -88,7 +73,6 @@ body {
   -o-transition: width 1s;
   transition: width 1s;
 }
-
 .pace-inactive {
   display: none;
 }
@@ -105,85 +89,59 @@ body {
   text-shadow: 0px 4px #000;
   font-weight: normal;
 }
+.navbar>.container .navbar-brand, .navbar>.container-fluid .navbar-brand {
+margin-left: -10px;
+}
 .navbar-default .navbar-brand span {
   font-size: 32px;
+}
+.navbar-default .navbar-brand:hover, .navbar-default .navbar-brand:focus {
+  color: #fff;
 }
 .navbar-default .navbar-nav>li>a {
   color: #fff;
 }
-.navbar-default .navbar-nav>.active>a, 
-.navbar-default .navbar-nav>.active>a:hover, 
-.navbar-default .navbar-nav>.active>a:focus {
-  background-color: #2c3e50;
+.navbar-default .navbar-nav>li>a:hover,
+.navbar-default .navbar-nav>li>a:focus {
   color: #fff;
 }
 .navbar-default .navbar-nav>.open>a,
 .navbar-default .navbar-nav>.open>a:hover,
 .navbar-default .navbar-nav>.open>a:focus {
-  background-color: #2c3e50;
+  background-color: transparent;
   color: #fff;
 }
-.navbar-default .navbar-nav>li>a:hover,
-.navbar-default .navbar-nav>li>a:focus {
-  background-color: #2c3e50;
-  color: #fff;
+.tooltip-top-right:before {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  bottom: auto;
+  border: 10px solid transparent;
+  border-top: 0;
+  border-bottom-color: rgba(0,0,0,0.1);
+}
+.tooltip-top-right:after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: -9px;
+  right: 15px;
+  bottom: auto;
+  border: 9px solid transparent;
+  border-top: 0;
+  border-bottom-color: #fff;
 }
 
-/* Search */
-.twitter-typeahead {
-  width: 100%;
-  bottom: 0;
-  border-top-style: solid;
-  margin: 2px;
-  border-width: 1px;
-}
-.label {
-  padding: 0.4em .6em .4em;
-  font-size: 80%;
-}
-.label-info {
-  background-color: #34495e;
-}
-
-/* Typeahead */
-/*.tt-query,
-.tt-hint {
-    width: 396px;
-    height: 30px;
-    padding: 8px 12px;
-    font-size: 24px;
-    line-height: 30px;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    outline: none;
-}*/
-
-.tt-query {
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-}
-.tt-hint {
-    color: #999
-}
-.tt-dropdown-menu {
-    width: 422px;
-    margin-top: 12px;
-    padding: 8px 0;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    box-shadow: 0 5px 10px rgba(0,0,0,.2);
-}
-.tt-suggestion {
-    padding: 3px 20px;
-    font-size: 18px;
-    line-height: 24px;
-}
- .tt-suggestion.tt-cursor  { /* UPDATE: newer versions use .tt-suggestion.tt-cursor */
+@media (max-width: 768px) {
+  .tooltip-top-right:before {
+    display: none;
+  }
+  .tooltip-top-right:after {
+    display: none;
+  }
+  .navbar-default .navbar-nav .open .dropdown-menu>li>a {
     color: #fff;
-    background-color: #0097cf;
-
-}
-.tt-suggestion p {
-    margin: 0;
+  }
 }
