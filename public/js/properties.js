@@ -60,17 +60,15 @@ $(function() {
     fjs.parentNode.insertBefore(js, fjs);
   }(document, 'script', 'facebook-jssdk'));
 
+  var Listing = Parse.Object.extend("Listing");
+
   // The FeedEntry model is a wrapper to a Listing object
   var FeedEntry = Parse.Object.extend("FeedEntry", {
     defaults: {
-      comments: [],
+      num_comments: 0,
+      availability: true,
       users_liked: [],
       users_seen: []
-    },
-
-    // Ensure that each todo created has `content`.
-    initialize: function(listing) {
-      this.set("listing", listing);
     },
 
     seeDetails: function() {
@@ -129,7 +127,7 @@ $(function() {
   var Feed = Parse.Collection.extend({
 
     // Reference to this collection's model.
-    model: FeedEntry,
+    model: Listing,
 
     // // Filter down the list of all todo items that are finished.
     // done: function() {
@@ -148,6 +146,49 @@ $(function() {
     }
   });
 
+  // FeedEntry Item View
+  // --------------
+
+  // The DOM element for the FeedEntry item..
+  var ListingView = Parse.View.extend({
+
+    // Cache the template function for a single item.
+    template: _.template($('#listing-template').html()),
+
+    initialize: function() {
+      var self = this;
+      this.entry = new FeedEntry({listing: this.model});
+
+      if (Parse.User.current()){
+        var feedEntryQuery = new Parse.Query(FeedEntry);
+        feedEntryQuery.equalTo("group", Parse.User.current().get("group"));
+        feedEntryQuery.equalTo("listing", this.model);
+
+        feedEntryQuery.first().then(function (entry) {
+          // re-render to show FeedEntry data
+          if (entry) {
+            self.entry = entry;
+            self.render();
+          }
+        });
+      }
+    },
+
+    // Re-render the contents of the FeedEntry item.
+    render: function() {
+      var listingJSON = this.model.toJSON();
+      var feedEntryJSON = this.entry.toJSON();
+      console.log(listingJSON);
+      
+      for (var key in feedEntryJSON)
+        listingJSON[key] = feedEntryJSON[key];
+
+      $(this.el).html(this.template(listingJSON));
+
+      return this;
+    }
+
+  });
 
   // Search Model
   // ----------
@@ -167,7 +208,6 @@ $(function() {
   // Search Item View
   // --------------
 
-  // The DOM element for a property item...
   var SearchView = Parse.View.extend({
     el: "#search-container",
 
@@ -183,47 +223,15 @@ $(function() {
     },
 
     initialize: function() {
-      $(this.el).html(this.template(this.model.toJSON()));
-
       // bind events
       _.bindAll(this, 'render', 'performSearch','initializeMap');
       this.model.bind('change', this.render);
       this.model.bind('change', this.performSearch);
 
-      // initialize price slider
-      $( "#price-slider" ).slider({
-        range:true,
-        min: 0,
-        max: 6000,
-        step: 50,
-        values: [ this.model.get("price_min"), this.model.get("price_max") ],
-        slide: function( event, ui ) {
-          $( "#price-min" ).val(ui.values[0]);
-          $( "#price-max" ).val(ui.values[1]);
-        },
-        stop: function( event, ui ) {
-          // depending on which value changed, trigger event
-          if (ui.value == ui.values[0])
-            $( "#price-min" ).trigger("change");
-          else
-            $( "#price-max" ).trigger("change");
-        }
-      });
-
-      // initialize area tag input
-      $('#areas').tagsinput({
-        freeInput: false, //only allow typeahead values
-        typeaheadjs: {
-          name: 'boroughnames',
-          displayKey: 'name',
-          valueKey: 'name',
-          source: boroughnames.ttAdapter()
-        }
-      });
-
+      this.render();
       // intialize map
-      this.initializeMap();
-      this.performSearch();
+      //this.initializeMap();
+      //google.maps.event.addListenerOnce(this.map, 'idle', this.performSearch);
     },
 
     initializeMap: function() {
@@ -300,12 +308,46 @@ $(function() {
       var control = document.getElementById('transit-wpr');
       map.controls[google.maps.ControlPosition.TOP_RIGHT].push(control);
 
-      google.maps.event.addDomListener(control, 'click', function() {
+      /*google.maps.event.addDomListener(control, 'click', function() {
         transitLayer.setMap(transitLayer.getMap() ? null : map);
-      });
+      });*/
     },
 
     render: function() {
+      this.$el.html(this.template(this.model.toJSON()));
+
+      // initialize price slider
+      $( ".price-range-slider" ).slider({
+        range:true,
+        min: 0,
+        max: 6000,
+        step: 50,
+        values: [ this.model.get("price_min"), this.model.get("price_max") ],
+        slide: function( event, ui ) {
+          $( "#price-min" ).val(ui.values[0]);
+          $( "#price-max" ).val(ui.values[1]);
+        },
+        stop: function( event, ui ) {
+          // depending on which value changed, trigger event
+          if (ui.value == ui.values[0])
+            $( "#price-min" ).trigger("change");
+          else
+            $( "#price-max" ).trigger("change");
+        }
+      });
+
+
+      // initialize area tag input
+      $('#areas').tagsinput({
+        freeInput: false, //only allow typeahead values
+        typeaheadjs: {
+          name: 'boroughnames',
+          displayKey: 'name',
+          valueKey: 'name',
+          source: boroughnames.ttAdapter()
+        }
+      });
+
       this.delegateEvents();
     },
 
@@ -353,6 +395,8 @@ $(function() {
     performSearch: function() {
       var Listing = Parse.Object.extend("Listing");
       var query = new Parse.Query(Listing);
+      query.select(["details_url", "last_published_date", "outcode", "borough",
+                    "price_per_month", "image_urls"]);
 
       if (this.model.get("num_beds").length > 0) {
         query.containedIn("num_bedrooms", this.model.get("num_beds"));
@@ -365,8 +409,6 @@ $(function() {
             SW = new Parse.GeoPoint(SW.lat(), SW.lng());
         var NE = this.map.getBounds().getNorthEast();
             NE = new Parse.GeoPoint(NE.lat(), NE.lng());
-        console.log(SW);
-        console.log(NE);
         query.withinGeoBox("location", SW, NE)
       }
 
@@ -379,14 +421,21 @@ $(function() {
       if (this.model.get("with_photos")) {
         query.notEqualTo("image_url","");
       }
-
-      query.find({
-        success: function(results) {
+      
+      query.find().then(
+        function (results) {
           for (var i = 0; i < results.length; i++) {
-            console.log(results[i].get("details_url") +" " +results[i].id);
+            var view = new ListingView({
+              model: results[i],
+              id: results[i].id
+            });
+            this.$("#list-container").append(view.render().el);
           }
+        },
+        function (error) {
+          console.log("Error fetching properties. Error message: " + error.message);
         }
-      });
+      );
     },
 
     saveSearch: function() {
@@ -404,29 +453,73 @@ $(function() {
     // the App already present in the HTML.
     el: $("#app-container"),
 
+    navEl: ".button-container",
+
+    events: {
+      "click .login-fb": "logInFb",
+      "click .log-out": "logOut"
+    },
+
     initialize: function() {
+      _.bindAll(this, "logInFb", "logOut", "render");
+      this.render();
+    },
+
+    logInFb: function(e) {
+      var self = this;
+
+      //Ask for default permissions
+      Parse.FacebookUtils.logIn('public_profile,email,user_friends', {
+        success: function(user) {
+          // fetch the FB user data
+          Parse.User.current().fetch().then(
+            function() {
+              self.searchView && delete self.searchView;
+              self.render();
+            }
+          );
+        },
+        error: function(user, error) {
+          self.$("input.login-fb").removeAttr("disabled");
+        }
+      });
+
+      this.$("input.login-fb").attr("disabled", "disabled");
+
+      return false;
+    },
+
+    logOut: function(e) {
+      Parse.User.logOut();
+      this.searchView && delete this.searchView;
       this.render();
     },
 
     render: function() {
+      var self = this;
+
       if (Parse.User.current()) {
         Parse.User.current().get("group").fetch(
         ).then(
           function(group) {
-            return group.get("search").fetch();
+            $(self.navEl).html(_.template($("#nav-main-template").html()));
+
+            var searchQuery = new Parse.Query(Search);
+            searchQuery.equalTo("group", group);
+
+            return searchQuery.first();
           }
         ).then(
-          function(search) {
-            if (search) {
-              new SearchView({model: search});
-            } else {
-              new SearchView({model: new Search()});
-            }
+          function (search) {
+            new SearchView({model: search ? search : new Search()});
           }
         );
       } else {
-        new SearchView({model: new Search()});
+        $(this.navEl).html(_.template($("#nav-login-template").html()));
+        this.searchView = new SearchView({model: new Search()});
       }
+
+      this.delegateEvents();
     }
   });
 
