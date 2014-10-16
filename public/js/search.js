@@ -1,3 +1,5 @@
+var log = console.log.bind(console);
+
 var CHARING_CROSS = new google.maps.LatLng(51.507222,-0.1275);
 
 var dateDiff = function(s) {
@@ -178,7 +180,6 @@ $(function() {
     render: function() {
       var listingJSON = this.model.toJSON();
       var feedEntryJSON = this.entry.toJSON();
-      console.log(listingJSON);
       
       for (var key in feedEntryJSON)
         listingJSON[key] = feedEntryJSON[key];
@@ -225,13 +226,52 @@ $(function() {
     initialize: function() {
       // bind events
       _.bindAll(this, 'render', 'performSearch','initializeMap');
-      this.model.bind('change', this.render);
-      this.model.bind('change', this.performSearch);
+      
+      this.$el.html(this.template(this.model.toJSON()));
 
-      this.render();
+      // initialize controls
+      this.initializeControls();
+
       // intialize map
-      //this.initializeMap();
-      //google.maps.event.addListenerOnce(this.map, 'idle', this.performSearch);
+      this.initializeMap();
+      google.maps.event.addListenerOnce(this.map, 'idle', this.performSearch);
+      
+      this.model.bind('change', this.performSearch);
+      this.model.bind('change', this.render);
+    },
+
+    initializeControls: function() {
+      // initialize price slider
+      $( ".price-range-slider" ).slider({
+        range:true,
+        min: 0,
+        max: 6000,
+        step: 50,
+        values: [ this.model.get("price_min"), this.model.get("price_max") ],
+        slide: function( event, ui ) {
+          $( "#price-min" ).val(ui.values[0]);
+          $( "#price-max" ).val(ui.values[1]);
+        },
+        stop: function( event, ui ) {
+          // depending on which value changed, trigger event
+          if (ui.value == ui.values[0])
+            $( "#price-min" ).trigger("change");
+          else
+            $( "#price-max" ).trigger("change");
+        }
+      });
+
+
+      // initialize area tag input
+      $('#areas').tagsinput({
+        freeInput: false, //only allow typeahead values
+        typeaheadjs: {
+          name: 'boroughnames',
+          displayKey: 'name',
+          valueKey: 'name',
+          source: boroughnames.ttAdapter()
+        }
+      });
     },
 
     initializeMap: function() {
@@ -314,40 +354,7 @@ $(function() {
     },
 
     render: function() {
-      this.$el.html(this.template(this.model.toJSON()));
-
-      // initialize price slider
-      $( ".price-range-slider" ).slider({
-        range:true,
-        min: 0,
-        max: 6000,
-        step: 50,
-        values: [ this.model.get("price_min"), this.model.get("price_max") ],
-        slide: function( event, ui ) {
-          $( "#price-min" ).val(ui.values[0]);
-          $( "#price-max" ).val(ui.values[1]);
-        },
-        stop: function( event, ui ) {
-          // depending on which value changed, trigger event
-          if (ui.value == ui.values[0])
-            $( "#price-min" ).trigger("change");
-          else
-            $( "#price-max" ).trigger("change");
-        }
-      });
-
-
-      // initialize area tag input
-      $('#areas').tagsinput({
-        freeInput: false, //only allow typeahead values
-        typeaheadjs: {
-          name: 'boroughnames',
-          displayKey: 'name',
-          valueKey: 'name',
-          source: boroughnames.ttAdapter()
-        }
-      });
-
+      log("render");
       this.delegateEvents();
     },
 
@@ -474,7 +481,11 @@ $(function() {
           // fetch the FB user data
           Parse.User.current().fetch().then(
             function() {
-              self.searchView && delete self.searchView;
+              if (self.searchView) {
+                self.searchView.undelegateEvents();
+                delete this.searchView;
+              }
+
               self.render();
             }
           );
@@ -491,7 +502,11 @@ $(function() {
 
     logOut: function(e) {
       Parse.User.logOut();
-      this.searchView && delete this.searchView;
+      if (this.searchView) {
+        this.searchView.undelegateEvents();
+        delete this.searchView;
+      }
+
       this.render();
     },
 
@@ -511,7 +526,7 @@ $(function() {
           }
         ).then(
           function (search) {
-            new SearchView({model: search ? search : new Search()});
+            self.searchView = new SearchView({model: search ? search : new Search()});
           }
         );
       } else {
