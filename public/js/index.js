@@ -25,15 +25,47 @@ $(function() {
     fjs.parentNode.insertBefore(js, fjs);
   }(document, 'script', 'facebook-jssdk'));
 
-	var LogInView = Parse.View.extend({
+  var MainView = Parse.View.extend({
+    actionTemplate: _.template($('#action-box-welcome-template').html()),
+
     events: {
-      "click #login-fb-btn": "logInFb",
+      "click .log-out": "logOut"
+    },
+
+    el: ".button-container",
+
+    initialize: function() {
+      this.render();
+      _.bindAll(this, "logOut", "render");
+    },
+
+    logOut: function(e) {
+      Parse.User.logOut();
+      new LogInView();
+      this.undelegateEvents();
+      delete this;
+    },
+
+    render: function() {
+      var self = this;
+      this.$el.html(_.template($("#mainview-template").html()));
+      $('#action-box').html(self.actionTemplate());
+
+      this.delegateEvents();
+    }
+  });
+
+	var LogInView = Parse.View.extend({
+    actionTemplate: _.template($('#action-box-people-template').html()),
+
+    events: {
+      "click .login-fb": "logInFb",
     },
 
     el: ".button-container",
     
     initialize: function() {
-      _.bindAll(this, "logInFb");
+      _.bindAll(this, "logInFb", "render");
       this.render();
     },
 
@@ -44,20 +76,28 @@ $(function() {
       Parse.FacebookUtils.logIn('public_profile,email,user_friends', {
         success: function(user) {
           // fetch the FB user data
-          Parse.User.current().fetch();
+          Parse.User.current().fetch().then(
+            function() {
+              new MainView();
+              self.undelegateEvents();
+              delete self;
+            }
+          );
         },
 			  error: function(user, error) {
-			    self.$(".login-form button").removeAttr("disabled");
+			    self.$("input.login-fb").removeAttr("disabled");
 			  }
 			});
 
-      this.$(".login-form button").attr("disabled", "disabled");
+      this.$("input.login-fb").attr("disabled", "disabled");
 
       return false;
     },
 
     render: function() {
+      var self = this;
       this.$el.html(_.template($("#login-template").html()));
+      $('#action-box').html(self.actionTemplate());
       this.delegateEvents();
     }
   });
@@ -74,7 +114,7 @@ $(function() {
 
 		render: function() {
       if (Parse.User.current()) {
-        
+        new MainView();
       } else {
         new LogInView();
       }
