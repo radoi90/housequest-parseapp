@@ -194,7 +194,7 @@ $(function() {
 
       if (Parse.User.current()){
         var feedEntryQuery = new Parse.Query(FeedEntry);
-        feedEntryQuery.equalTo("group", Parse.User.current().get("group"));
+        feedEntryQuery.equalTo("group", state.get("group"));
         feedEntryQuery.equalTo("listing", this.model);
 
         feedEntryQuery.first().then(function (entry) {
@@ -490,8 +490,9 @@ $(function() {
     },
 
     saveSearch: function() {
-      this.model.set({group: Parse.User.current().get("group")});
-      this.model.save();
+      if (Parse.User.current()) {
+        this.model.save({group: state.get("group")});
+      }
     }
   });
 
@@ -513,6 +514,12 @@ $(function() {
 
     initialize: function() {
       _.bindAll(this, "logInFb", "logOut", "render");
+      if (QueryString.num_beds) {
+        var url_num_beds = _.map(QueryString.num_beds.split(','), function (n) { return parseInt(n) });
+        if (url_num_beds.length > 0)
+          state.set({ num_beds: url_num_beds });
+      }
+
       this.render();
     },
 
@@ -558,10 +565,28 @@ $(function() {
       var self = this;
 
       if (Parse.User.current()) {
-        Parse.User.current().get("group").fetch(
-        ).then(
-          function(group) {
-            $(self.navEl).html(_.template($("#nav-main-template").html()));
+        var Group = Parse.Object.extend("Group");
+        var groupQuery = new Parse.Query(Group);
+        groupQuery.equalTo("users", Parse.User.current());
+        groupQuery.include("users");
+
+        groupQuery.first().then(
+          function (group) {
+            state.set({ group: group });
+
+            var userNav = _.template($("#nav-main-template").html());
+            var userData = _.chain(state.get("group").get("users"))
+              .filter(function(u) {
+                return u.id != Parse.User.current().id
+              })
+              .map(function (u) { 
+                return {
+                  first_name: u.get("first_name"),
+                  profile_img: u.get("profile_image_url")
+                }
+              })
+              .value();
+            $(self.navEl).html(userNav({ users: userData }));
 
             var searchQuery = new Parse.Query(Search);
             searchQuery.equalTo("group", group);
@@ -570,12 +595,16 @@ $(function() {
           }
         ).then(
           function (search) {
-            self.searchView = new SearchView({model: search ? search : new Search()});
+            self.searchView = new SearchView({
+              model: search ? search : new Search({num_beds: state.get("num_beds")})
+            });
           }
         );
       } else {
         $(this.navEl).html(_.template($("#nav-login-template").html()));
-        this.searchView = new SearchView({model: new Search()});
+        this.searchView = new SearchView({
+          model: new Search({num_beds: state.get("num_beds")})
+        });
       }
 
       this.delegateEvents();
@@ -589,14 +618,15 @@ $(function() {
   //   },
   // });
   
-  // TODO: This is the transient application state, not persisted on Parse
-  // var AppState = Parse.Object.extend("AppState", {
-  //   defaults: {
-  //     TODO: SEARCH QUERY, default London
-  //   }
-  // });
+  // This is the transient application state, not persisted on Parse
+  var AppState = Parse.Object.extend("AppState", {
+    defaults: {
+      group: undefined,
+      num_beds: [0, 1, 2, 3, 4]
+    }
+  });
 
-  // var state = new AppState;
+  var state = new AppState;
 
   //new AppRouter;
   new AppView;
