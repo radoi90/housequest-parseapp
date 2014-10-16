@@ -166,6 +166,12 @@ margin-left: -10px;
   background-color: transparent;
   color: #fff;
 }
+.img-profile {
+  height: 32px;
+  width: 32px;
+  padding: 1px;
+  margin: -6px 5px;
+}
 .navbar-nav>li>input {
   background: transparent;
   color: #fff;

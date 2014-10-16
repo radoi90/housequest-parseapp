@@ -37,17 +37,12 @@ body {
 	background-color: #f1c40f;
 }
 .navbar-default .navbar-nav>li>a {
-	font-size: 16px;
+	font-size: 100%;
 }
 .navbar-default .navbar-nav>li>input {
-	font-size: 16px;
+	font-size: 100%;
 }
-.img-profile {
-	height: 32px;
-	width: 32px;
-	padding: 1px;
-	margin: -6px 5px;
-}
+
 /* Text */
 .banner-text {
 	font-family: AvenirNext LT Pro Demi;
