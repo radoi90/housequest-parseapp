@@ -90,115 +90,13 @@
   <!-- Templates -->
 
   <script type="text/template" id="search-template">
-    <form role="form">
-      <div class="form-group">
-        <input type="text" class="form-control" data-role="tagsinput" id="areas"
           value="<%= _.escape(areas.join()) %>" placeholder="Where do you want to live?"/>
-      </div>
-      <div class="form-group">
-        <label class="checkbox-inline">
-          <input type="checkbox" class="num-beds-select" value="0" <%= _.contains(num_beds,0) ? 'checked="checked"' : '' %>> Studio
-        </label>
-        <label class="checkbox-inline">
-          <input type="checkbox" class="num-beds-select" value="1" <%= _.contains(num_beds,1) ? 'checked="checked"' : '' %>> 1 bed
-        </label>
-        <label class="checkbox-inline">
-          <input type="checkbox" class="num-beds-select" value="2" <%= _.contains(num_beds,2) ? 'checked="checked"' : '' %>> 2 bed
-        </label>
-        <label class="checkbox-inline">
-          <input type="checkbox" class="num-beds-select" value="3" <%= _.contains(num_beds,3) ? 'checked="checked"' : '' %>> 3 bed
-        </label>
-        <label class="checkbox-inline">
-          <input type="checkbox" class="num-beds-select" value="4" <%= _.contains(num_beds,4) ? 'checked="checked"' : '' %>> 4 +
-        </label>
-      </div>
-      <div class="form-group">
-        <div id="price-slider"></div>
-        <input type="text" readonly id="price-min" value="<%= price_min %>">
-        <input type="text" readonly id="price-max" value="<%= price_max %>">          
-      </div>
-      <div class="checkbox">
-        <label>
-          <input id="with-photos" type="checkbox" <%= with_photos ? 'checked="checked"' : '' %>> Require with pictures
-        </label>
-      </div>
 
-      <button type="button" class="btn btn-default btn-save">Save changes</button>
-    </form>
+
   </script>
 
-  <script type="text/template" id="results-template">
-    <!-- List header  -->
-    <div id="results-list-header">
-      <div id="filters">
-        <button class="btn selected" id="active">Active</button>
-        <button class="btn" id="booked">Viewings</button>
-        <button class="btn" id="starred">
-          <i class="fa fa-heart"></i>
-        </button>
-        <button class="btn" id="hidden">
-          <i class="fa fa-times"></i>
-        </button>
-      </div>  
-    </div>
-
-    <div id="list-container">
-      <ul id="results-list">
-      </ul>
-    </div>
-  </script>
-
-  <script type="text/template" id="result-template">
-    <div id="<%= _.escape(content.listing_id) %>" class="property-box <%= starred ? 'hearted' : '' %> <%= hidden ? 'removed' : '' %> <%= booked ? 'booked' : '' %>">
-      <div class="property" style="background-image: url('<%= _.escape(content.image_url)%>')">
-        <div class="property-container">
-          <div class="button-header">
-            <div class="heart">
-              <i class="fa fa-heart fa-2x"></i>
-              <i class="fa fa-heart-o fa-2x"></i>
-            </div>
-            <div class="remove">
-              <i class="fa fa-times fa-2x"></i>
             </div>
           </div>
-          <div class="property-info">
-              <div class="">
-                <div class="property-details">
-                  <div class="property-rooms">
-                    <div class="property-rooms-row">
-                      <div class="col-room">
-                        <img src="./img/beds.png" width="30px" height="20px" class="beds"/>
-                        <div class="bed-num"><%=_.escape(content.num_bedrooms) > 0 ? _.escape(content.num_bedrooms) : 'STUDIO'%></div>
-                      </div>
-                      <div class="col-room">
-                        <img src="./img/baths.png" width="32px" height="20px" class="baths"/>
-                        <div class="bath-num"><%=_.escape(content.num_bathrooms) > 0 ? _.escape(content.num_bathrooms) : 1%></div>
-                      </div>
-                      <div class="col-room col-room-right">
-                        <img src="./img/sofa.png" width="34px" height="15px" class="sofa"/>
-                        <div class="lounge-num"><%=_.escape(content.num_recepts)%></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="property-price">
-                    £<%=_.escape(content.rental_prices.per_month)%>
-                  </div>
-                </div>
-              </div>
-          </div> 
-        </div>
-      </div>
-      <div class="property-footer">
-        <div class="property-address">
-          <span class="address"><%= _.escape(content.displayable_address) %></span></br>
-          <span class="date">Added <%= _.escape(dateDiff(content.last_published_date)) %></span> 
-        </div>
-        <div class="view-button">
-          <button class="btn btn-flat btn-green <%= booked ? 'btn-view-pend' : 'btn-view'%> book">
-            <%= booked ? 'Viewing pending' : 'Arrange viewing' %>
-          </button>
-        </div>
-      </div> 
     </div>
   </script>
 
