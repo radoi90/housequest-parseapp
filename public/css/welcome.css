@@ -136,9 +136,6 @@ body {
 }
 /* Mobile devices (phones, up to 768px) */
 @media (max-width: 768px) { 
-	body {
-		font-size: 12px;
-	}
 	#action-box {
 		width: 100%;
 		left: 0;
@@ -149,18 +146,5 @@ body {
 	}
 	.navbar-default .navbar-collapse, .navbar-default .navbar-form {
 		background-color: rgba(11, 11, 11, 0.15);
-	}
-}
-
-/* Small devices (tablets, up to 992px) */
-@media (min-width: 769px) and (max-width: 992px) {
-	body {
-		font-size: 14px;
-	}
-}
-/* Medium devices (desktops, up to 1200px) */
-@media (min-width: 993px) and (min-width: 1200px) {
-	body {
-		font-size: 16px;
 	}
 }
