@@ -47,6 +47,10 @@ body {
   background-color:white;
   height: 100%;
   font-family: AvenirNext LT Pro Regular;
+  font-size: 14px;
+}
+.text-small {
+  font-size: 80%;
 }
 .height-full {
   height: 100%;
@@ -143,5 +147,15 @@ margin-left: -10px;
   }
   .navbar-default .navbar-nav .open .dropdown-menu>li>a {
     color: #fff;
+  }
+@media (max-width: 768px) { 
+  body {
+    font-size: 12px;
+  }
+}
+/* Large devices (desktops, up to 1280px) */
+@media screen and (min-width: 1280px) {
+  body {
+    font-size: 16px;
   }
 }
