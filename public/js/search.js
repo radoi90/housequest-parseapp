@@ -449,12 +449,18 @@ $(function() {
 
     performSearch: function() {
       var self = this;
+      var dateLimit = new Date();
+      dateLimit.setDate(dateLimit.getDate() - 5);
+
       this.clearResults();
 
       var Listing = Parse.Object.extend("Listing");
       var query = new Parse.Query(Listing);
       query.select(["details_url", "last_published_date", "outcode", "borough",
-                    "price_per_month", "image_urls"]);
+                    "price_per_month", "image_urls"])
+      .descending("last_published_date")
+      .greaterThanOrEqualTo("last_published_date", dateLimit);
+
 
       if (this.model.get("num_beds").length > 0) {
         query.containedIn("num_bedrooms", this.model.get("num_beds"));
