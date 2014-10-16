@@ -44,17 +44,8 @@
           </li>
         </ul>
 
-        <ul class="nav navbar-nav navbar-right">
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Emil <span class="caret"></span></a>
-            <ul class="dropdown-menu" role="menu">
-              <li><a href="#">Update profile</a></li>
-              <li><a href="#">Modify alerts</a></li>
-              <li class="divider"></li>
-              <li><a href="#">Sign out</a></li>
-            </ul>
-          </li>
-          <li><a href="#">Add housemates</a></li>
+        <ul class="nav navbar-nav navbar-right button-container">
+
         </ul>
       </div><!-- /.navbar-collapse -->
     </div> <!-- .container-fluid -->
@@ -88,6 +79,27 @@
   </div> <!-- #app-container.container-fluid.height-full -->
 
   <!-- Templates -->
+  <script type="text/template" id="nav-login-template">
+    <li><input type="submit" class="login-fb" value="Sign up"></li>
+    <li><input type="submit" class="login-fb" value="Log in"></li>
+  </script>
+
+  <script type="text/template" id="nav-main-template">
+    <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+          <img class="img-circle img-thumbnail img-profile"height="28" width="28" src="<%= Parse.User.current().get('profile_image_url') %>" alt="Your profile">
+          <%= _.escape(Parse.User.current().get("first_name")) %> <span class="caret"></span></a>
+          <ul class="dropdown-menu tooltip-top-right" role="menu">
+            <li><a href="#">Update profile</a></li>
+            <li><a href="#">Modify alerts</a></li>
+            <li class="divider"></li>
+            <li><a class="log-out" href="#">Log out</a></li>
+          </ul>
+    </li>
+    <li>
+      <a class="btn btn-flat btn-search btn-nav" href='/search.html'>Your feed</a>
+    </li>
+  </script>
 
   <script type="text/template" id="search-template">
     <div class="container-fluid">
