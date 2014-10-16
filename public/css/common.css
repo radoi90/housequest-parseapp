@@ -166,11 +166,17 @@ margin-left: -10px;
   background-color: transparent;
   color: #fff;
 }
+.navbar-default li, .navbar-default .navbar-text {
+  color: #fff;
+}
 .img-profile {
   height: 32px;
   width: 32px;
   padding: 1px;
   margin: -6px 5px;
+}
+.group-thumbnails {
+  padding: 15px 3px;
 }
 .navbar-nav>li>input {
   background: transparent;
@@ -203,6 +209,9 @@ margin-left: -10px;
   border: 9px solid transparent;
   border-top: 0;
   border-bottom-color: #fff;
+}
+.label-info {
+  background-color: #34495E;
 }
 
 @media (max-width: 767px) {
