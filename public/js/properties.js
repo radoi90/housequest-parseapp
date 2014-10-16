@@ -1,5 +1,26 @@
 var CHARING_CROSS = new google.maps.LatLng(51.507222,-0.1275);
 
+var dateDiff = function(s) {
+  var date = new Date (s);
+  var milisDiff = new Date() - date, 
+        secDiff = milisDiff / 1000,
+        minDiff = secDiff / 60,
+          hDiff = minDiff / 60,
+        dayDiff = hDiff / 24,
+       weekDiff = dayDiff/7;
+
+  if (weekDiff >= 2) return Math.floor(weekDiff) + " weeks ago";
+  else if (weekDiff >=1) return "1 week ago";
+  else if (dayDiff >=2) return Math.floor(dayDiff) + " days ago";
+  else if (dayDiff >=1) return "1 day ago";
+  else if (hDiff >=2) return Math.floor(hDiff) + " hours ago";
+  else if (hDiff >=1) return "1 hour ago";
+  else if (minDiff >=2) return Math.floor(minDiff) +  " minutes ago";
+  else if (minDiff >=1) return "1 minute ago";
+  else if (secDiff >=2) return Math.floor(secDiff) + " seconds ago";
+  else return "moments ago";
+}
+
 $(function() {
   var boroughnames = new Bloodhound({
     datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
