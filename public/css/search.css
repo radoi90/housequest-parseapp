@@ -57,6 +57,11 @@ html {
 .twitter-typeahead, .twitter-typeahead>input {
   width: 100% !important;
 }
+.twitter-typeahead .tt-input {
+  border-top: #34495E;
+  border-top-width: 2px;
+  border-top-style: solid;
+}
 .price-range-slider {
   background-color: #dce0e0;
   border: 4px solid #f5f5f5;
@@ -76,6 +81,7 @@ html {
 }
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-slider-handle {
   border: 1px solid #dce0e0;
+  color: #9B9B9B;
   background: #fff;
   -moz-border-radius: 2px;
   -webkit-border-radius: 2px;
@@ -284,6 +290,7 @@ html {
 }
 input[type=text] {
   -webkit-appearance: none;
+  border: none;
 }
 input, select, textarea {
   border: 1px solid #ccc;
@@ -291,11 +298,17 @@ input, select, textarea {
   -moz-box-sizing: border-box;
   -ms-box-sizing: border-box;
   box-sizing: border-box;
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
-  -moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
-  box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+}
+#price-min {
+  float: left;
+  text-align: left;
+}
+#price-max {
+  float: right;
+  text-align: right;  
+}
+#price-min:before, #price-max {
+  content: '&pound;'
 }
 form {
   margin: 0;
