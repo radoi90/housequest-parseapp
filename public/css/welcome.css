@@ -39,6 +39,9 @@ body {
 .navbar-default .navbar-nav>li>a {
 	font-size: 16px;
 }
+.navbar-default .navbar-nav>li>input {
+	font-size: 16px;
+}
 .img-profile {
 	height: 32px;
 	width: 32px;
@@ -54,7 +57,7 @@ body {
 	/* Let us do your renta: */
 	text-shadow: 0px 2px 0px rgba(0,0,0,0.50);
 	text-align: center;
-	margin-top: 10%;
+	margin-top: 15%;
 }
 .banner-text-sub {
 	font-family: AvenirNext LT Pro Regular;
@@ -82,8 +85,8 @@ body {
 	position: relative;
 	left: 50%;
 	margin-left: -260px;
-	margin-top: 80px;
-	margin-bottom: 5%;
+	margin-top: 10%;
+	margin-bottom: 10%;
 	overflow:hidden;
 	padding: 10px 28px;
 }
@@ -115,16 +118,18 @@ body {
 	width: 25%;
 	background: #f1c40f;
 	border-bottom: 1px solid #A0861D;
-	border-left: 1px solid #A0861D;
 	-webkit-box-shadow: inset 0 -2px #A0861D;
 	box-shadow: inset 0 -2px #A0861D;
 	outline: none;
 }
-.btn-search:first-child {
-	border-left: none;
+.btn-search+.btn-search {
+	border-left: 1px solid #A0861D;
 }
 .btn-search:hover {
 	background: #E5D07D;
+}
+.btn-feed {
+	width: 40%;
 }
 .navbar-default .navbar-nav>li>a.btn-nav {
 	width: inherit;
