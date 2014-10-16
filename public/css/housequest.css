@@ -71,6 +71,33 @@ sup {
 .centered {
   text-align: center;
 }
+.img-responsive-height {
+  width: auto;
+  height: 100%;
+}
+.icon-white, .text-contrast {
+  color: #fff;
+}
+.icon-size-2 {
+  font-size: 2.4em;
+}
+.icon {
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+}
+.icon-chevron-left:before {
+  content: "\f053";
+}
+.icon-chevron-right:before {
+content: "\f054";
+}
+.icon:before {
+  line-height: 1;
+}
+.icon:before {
+  font-family: FontAwesome;
+}
 .row-condensed>.col-xs-1,.row-condensed>.col-sm-1,.row-condensed>.col-md-1,.row-condensed>.col-lg-1,
 .row-condensed>.col-xs-2,.row-condensed>.col-sm-2,.row-condensed>.col-md-2,.row-condensed>.col-lg-2,
 .row-condensed>.col-xs-3,.row-condensed>.col-sm-3,.row-condensed>.col-md-3,.row-condensed>.col-lg-3,
