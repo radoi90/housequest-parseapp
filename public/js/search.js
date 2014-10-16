@@ -175,11 +175,11 @@ $(function() {
     // Entries are sorted by the listing published date/price
     comparator: function(entry) {
       //TODO: add more types of compare
-      return entry.get('listing').get('last_published_date');
+      return entry.get('last_published_date');
     }
   });
 
-  // FeedEntry Item View
+  // Listing Item View
   // --------------
 
   // The DOM element for the FeedEntry item..
@@ -224,7 +224,6 @@ $(function() {
 
       return this;
     }
-
   });
 
   // Search Model
