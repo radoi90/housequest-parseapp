@@ -238,6 +238,8 @@ $(function() {
       
       this.model.bind('change', this.performSearch);
       this.model.bind('change', this.render);
+
+      this.listingViews = [];
     },
 
     initializeControls: function() {
@@ -400,6 +402,9 @@ $(function() {
     },
 
     performSearch: function() {
+      var self = this;
+      this.clearResults();
+
       var Listing = Parse.Object.extend("Listing");
       var query = new Parse.Query(Listing);
       query.select(["details_url", "last_published_date", "outcode", "borough",
@@ -436,6 +441,7 @@ $(function() {
               model: results[i],
               id: results[i].id
             });
+            self.listingViews.push(view);
             this.$("#list-container").append(view.render().el);
           }
         },
@@ -443,6 +449,14 @@ $(function() {
           console.log("Error fetching properties. Error message: " + error.message);
         }
       );
+    },
+
+    clearResults: function() {
+      _.map(this.listingViews, function (view) {
+        view.remove();
+      });
+
+      this.listingViews = [];
     },
 
     saveSearch: function() {
