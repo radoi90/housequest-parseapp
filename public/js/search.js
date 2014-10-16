@@ -201,10 +201,15 @@ $(function() {
           // re-render to show FeedEntry data
           if (entry) {
             self.entry = entry;
+            self.entry.bind("change", self.render, self);
             self.render();
           }
         });
       }
+    },
+
+    onClose: function(){
+      this.entry && this.entry.unbind("change", this.render);
     },
 
     // Re-render the contents of the FeedEntry item.
@@ -390,6 +395,17 @@ $(function() {
       this.delegateEvents();
     },
 
+    remove: function() {
+      this.$el.empty().off()
+      return this;
+    },
+
+    onClose: function() {
+      this.model.unbind('change', this.render);
+      this.model.unbind('change', this.performSearch);
+      this.clearResults();
+    },
+
     changeAreas: function(e) {
       var areas = [];
 
@@ -483,7 +499,7 @@ $(function() {
 
     clearResults: function() {
       _.map(this.listingViews, function (view) {
-        view.remove();
+        view.close();
       });
 
       this.listingViews = [];
@@ -533,7 +549,7 @@ $(function() {
           Parse.User.current().fetch().then(
             function() {
               if (self.searchView) {
-                self.searchView.undelegateEvents();
+                self.searchView.close();
                 delete this.searchView;
               }
 
@@ -554,7 +570,7 @@ $(function() {
     logOut: function(e) {
       Parse.User.logOut();
       if (this.searchView) {
-        this.searchView.undelegateEvents();
+        this.searchView.close();
         delete this.searchView;
       }
 
