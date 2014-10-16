@@ -94,8 +94,44 @@
 
 
   </script>
+  
+  <script type="text/template" id="listing-template">
+    <div class="listing-container col-sm-12 col-md-6">
+      <div class="listing-content">
+        <div class="listing-photos">
+          <a href="<%= details_url %>" class="photo photo-cover">
+            <div class="listing-img-container photo-cover centered">
+              <% _.each(image_urls, function(image_url) { %>
+              <img src="<%= image_url %>" class="img-responsive-height " alt="">
+              <% }); %>
+            </div> <!-- .listing-img-container.photo-cover.centered -->
+          </a> <!-- .photo.photo-cover -->
 
             </div>
+
+          <div class="target-next target-control block-link">
+            <i class="icon icon-chevron-right icon-size-2 icon-white"></i>
+          </div> <!-- .target-next.target-control -->
+        </div> <!-- .listing-photos -->
+
+        <div class="container-fluid listing-footer">
+          <div class="row listing-footer-row listing-info">
+            <div class="listing-footer-item listing-info-text">
+              <span class="listing-info-location">
+              <%= outcode + ", " + borough %>
+              </span></br>
+              <span class="listing-info-stats text-small">
+                <%= dateDiff(last_published_date.iso) + ' &#149; ' +  num_comments + ' comments' %>
+              </span>
+            </div> <!-- .listing-info-text -->
+
+            <div class="listing-footer-item listing-info-transit centered">
+              <span class="listing-nearest-transit text-small">Farringdon</span>
+            </div> <!-- .listing-info-transit -->
+          </div> <!-- .listing-footer-item.listing-info -->
+
+          <div class="scrollArea scrollAreaEmpty scrollAreaOpen scrollAreaInitialized" style="height:0px;">
+            <div class="scrollAreaContents"></div>
           </div>
 
           <div class="listing-comment-composer">
