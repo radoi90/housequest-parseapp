@@ -356,7 +356,6 @@ $(function() {
     },
 
     render: function() {
-      log("render");
       this.delegateEvents();
     },
 
