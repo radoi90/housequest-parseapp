@@ -549,11 +549,24 @@ Parse.Cloud.beforeSave("FeedEntry", function (request, response) {
 Parse.Cloud.afterSave(Parse.User, function (request) {
 	Parse.Cloud.useMasterKey();
 
-	if (!request.object.has("group")) {
-		var Group = Parse.Object.extend("Group");
-		var userGroup = new Group();
-		request.object.set("group", userGroup);
-	}
+	var Group = Parse.Object.extend("Group");
+	var groupQuery = new Parse.Query(Group);
+	groupQuery.equalTo("users", request.object);
+
+	groupQuery.first().then(
+		function (group) {
+			if (!group) {
+				var userGroup = new Group();
+				userGroup.addUnique("users", request.object);
+				
+				userGroup.save({
+					success: function (group) {
+						group.save({group_name: group.id});
+					}
+				});
+			}
+		}
+	);
 
 	if (!request.object.has("email")) {
 		Parse.Cloud.httpRequest({
@@ -576,7 +589,5 @@ Parse.Cloud.afterSave(Parse.User, function (request) {
 				request.object.save();
 			}
 		);
-	} else {
-		request.object.save();
 	}
 });
