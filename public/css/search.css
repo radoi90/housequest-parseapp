@@ -37,6 +37,9 @@ html {
 .col-content {
   overflow: scroll;
 }
+#search-container {
+  background: #fff;
+}
 
 /* Search filters */
 .row-filter{
