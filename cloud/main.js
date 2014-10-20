@@ -596,3 +596,85 @@ function buildListingQuery (searchParams) {
 
 	return query;
 }
+
+function sendSearchAlerts (currentBatchNumber) {
+	var alertsSentPromise = new Parse.Promise();
+
+	var SearchAlert = Parse.Object.extend("SearchAlerts");
+	var searchAlertQuery = new Parse.Query(SearchAlert);
+	searchAlertQuery.include("search");
+	searchAlertQuery.include("search.group");
+	searchAlertQuery.include("search.group.users");
+
+	var alertsUpdatedPromises = [];
+
+	console.log("Fetching all SearchAlerts");
+	searchAlertQuery.each(
+		function (searchAlert) {
+			var alertUpdatedPromise = new Parse.Promise();
+			alertsUpdatedPromises.push(alertUpdatedPromise);
+
+			// build the listings query for each search
+			var listingQuery = buildListingQuery(searchAlert.get("search").toJSON());
+
+			// query all properties added since last checked batch
+			listingQuery.greaterThan("batchNo", searchAlert.get("lastBatchChecked"));
+
+			// fetch the number of new listings matching search parameters
+			listingQuery.count()
+			.then(
+				function (num_new_listings) {
+					if (num_new_listings > 0) {
+						return Parse.Push.send({
+						  channels: [searchAlert.get("search").get("group").get("group_name")],
+						  data: {
+						  	alert: "Surprise! You got " + num_new_listings + " new propert" + (num_new_listings == 1 ? "y!" : "ies!"),
+						  	type: 2,
+						  	sound: "default",
+						  	value: {}
+						  }
+						});
+					} else {
+						return Parse.Promise.as(0);
+					}
+				},
+				function (error) {
+					console.log("Error fetching new listings count for search " + searchAlert.get("search").id + " " + error.message);
+				}
+			).then(
+				function() {
+					// save batchNumber in searchAlert
+					searchAlert.save({lastBatchChecked: currentBatchNumber});
+				}
+			).then(
+				function (updatedAlert) {
+					alertUpdatedPromise.resolve(updatedAlert);
+				},
+				function (error) {
+					console.log("Error updating SearchAlert " + error.message);
+					alertUpdatedPromise.reject(error);
+				}
+			);
+		}
+	)
+	.then(
+		function() {
+			console.log("Waiting for all SearchAlerts to be updated");
+
+			return Parse.Promise.when(alertsUpdatedPromises);
+		},
+		function (error) {
+			console.error("Error fetching SearchAlerts, message:" + error.message);
+		}
+	)
+	.then(
+		function() {
+			alertsSentPromise.resolve("Sent push notifications for all saved alerts");
+		},
+		function (error) {
+			alertsSentPromise.reject("Error sending push notifications, message: " + error.message);
+		}
+	);
+
+	return alertsSentPromise;
+}
