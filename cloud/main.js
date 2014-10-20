@@ -43,11 +43,10 @@ Parse.Cloud.job("zooplaClone", function(request, status) {
 	).then(
 		function(completedJob) {
 			console.log("Getting batch size");
-
 			var promise = new Parse.Promise();
 			var statsQuery = new Parse.Query(Listing);
-			statsQuery.limit(1000);
 			statsQuery.equalTo("batchNo", completedJob.get("batchNo"));
+
 			statsQuery.count({
 				success: function(batchSize) {
 					completedJob.set("batchSize", batchSize);
@@ -74,12 +73,22 @@ Parse.Cloud.job("zooplaClone", function(request, status) {
 		}
 	).then(
 		function(savedJob) {
-			console.log("Successful job, added " + savedJob.get("batchSize") + ". Exiting.")
+			console.log("Successful job, added " + savedJob.get("batchSize") + ". Sending search alerts.");
+			return sendSearchAlerts(savedJob.get("batchNo"));
 			status.success("Cloning finished.");
 		},
 		function(error) {
 			console.error('Error ' + error.code + " " + error.message);
 			status.error("Cloning failed, error saving job information.");
+		}
+	).then(
+		function() {
+			console.log("Job finished successfully. Exiting");
+			status.success("Cloning finished.");
+		},
+		function(error) {
+			console.error('Error ' + error.code + " " + error.message);
+			status.error("Cloning failed, error sending alerts.");
 		}
 	);
 });
