@@ -52,7 +52,7 @@ body {
 	/* Let us do your renta: */
 	text-shadow: 0px 2px 0px rgba(0,0,0,0.50);
 	text-align: center;
-	margin-top: 15%;
+	margin-top: 10%;
 }
 .banner-text-sub {
 	font-family: AvenirNext LT Pro Regular;
@@ -80,8 +80,8 @@ body {
 	position: relative;
 	left: 50%;
 	margin-left: -260px;
-	margin-top: 10%;
-	margin-bottom: 10%;
+	margin-top: 8%;
+	margin-bottom: 5%;
 	overflow:hidden;
 	padding: 10px 28px;
 }
