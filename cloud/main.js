@@ -423,37 +423,6 @@ var Listing = Parse.Object.extend("Listing");
 
 var FeedEntry = Parse.Object.extend("FeedEntry");
 
-Parse.Cloud.define("performSearch", function (request, response) {
-	var query = new Parse.Query(Listing);
-
-	if (request.params.num_beds.length > 0) {
-		query.containedIn("num_bedrooms", request.params.num_beds);
-	}
-
-	if (request.params.areas.length > 0) {
-		query.containedIn("borough", request.params.areas);
-	}
-
-	query.greaterThanOrEqualTo("price_per_month", request.params.price_min);
-
-	if (request.params.price_max < 6000) {
-		query.lessThanOrEqualTo("price_per_month", request.params.price_max);
-	}
-
-	if (request.params.with_photos) {
-		query.notEqualTo("image_url","");
-	}
-
-	query.find({
-        success: function(results) {
-        	response.success(results);
-        },
-        error: function(error) {
-        	response.error(error);
-        }
-    });
-});
-
 // Enforce uniqueness based on the listing_id column, perform other checks
 Parse.Cloud.beforeSave("Listing", function (request, response) {
 	Parse.Cloud.useMasterKey();
@@ -590,7 +559,7 @@ Parse.Cloud.afterSave(Parse.User, function (request) {
 			}
 		);
 	}
-});});
+});
 
 // Link each Installation to its User
 Parse.Cloud.beforeSave(Parse.Installation, function (request,response) {
@@ -603,3 +572,27 @@ Parse.Cloud.beforeSave(Parse.Installation, function (request,response) {
 		response.success();
 	}
 });
+
+function buildListingQuery (searchParams) {
+	var query = new Parse.Query(Listing);
+
+	if (searchParams.num_beds.length > 0) {
+		query.containedIn("num_bedrooms", searchParams.num_beds);
+	}
+
+	if (searchParams.areas.length > 0) {
+		query.containedIn("borough", searchParams.areas);
+	}
+
+	query.greaterThanOrEqualTo("price_per_month", searchParams.price_min);
+
+	if (searchParams.price_max < 6000) {
+		query.lessThanOrEqualTo("price_per_month", searchParams.price_max);
+	}
+
+	if (searchParams.with_photos) {
+		query.greaterThan("num_images",0);
+	}
+
+	return query;
+}
