@@ -237,7 +237,7 @@ html {
   position: relative;
 }
 .listing-comment-composer {
-  padding: 10px;
+  padding: 2px 10px;
   margin-bottom: 0;
 }
 .listing-footer-row {
@@ -294,6 +294,9 @@ html {
 input[type=text] {
   -webkit-appearance: none;
   border: none;
+}
+input[type=text] {
+  outline: 0;
 }
 input, select, textarea {
   border: 1px solid #ccc;
