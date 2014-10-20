@@ -379,15 +379,17 @@ $(function() {
         map.data.revertStyle();
       });
 
-      var transitLayer = new google.maps.TransitLayer();
-      transitLayer.setMap(map);
+      // $('#map-container').html(_.template($("#map-buttons-template").html()));
 
-      var control = document.getElementById('transit-wpr');
-      map.controls[google.maps.ControlPosition.TOP_RIGHT].push(control);
+      // var transitLayer = new google.maps.TransitLayer();
+      // transitLayer.setMap(map);
 
-      /*google.maps.event.addDomListener(control, 'click', function() {
-        transitLayer.setMap(transitLayer.getMap() ? null : map);
-      });*/
+      // var control = document.getElementById('transit-wpr');
+      // map.controls[google.maps.ControlPosition.TOP_RIGHT].push(control);
+
+      // google.maps.event.addDomListener(control, 'click', function() {
+      //   transitLayer.setMap(transitLayer.getMap() ? null : map);
+      // });
     },
 
     render: function() {
