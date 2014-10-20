@@ -136,7 +136,7 @@ html {
 .listing-container {
   min-width: 240px;
   max-width: 512px;
-  padding: 12px;
+  padding: 12px 6.25px;
 }
 .listing-content {
   background: #fafafa;
