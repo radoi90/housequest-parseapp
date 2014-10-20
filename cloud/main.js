@@ -590,4 +590,16 @@ Parse.Cloud.afterSave(Parse.User, function (request) {
 			}
 		);
 	}
+});});
+
+// Link each Installation to its User
+Parse.Cloud.beforeSave(Parse.Installation, function (request,response) {
+	Parse.Cloud.useMasterKey();
+
+	if (!request.object.has("userId")) {
+		request.object.set("userId", request.user);
+		response.success();
+	} else {
+		response.success();
+	}
 });
