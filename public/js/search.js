@@ -482,7 +482,7 @@ $(function() {
       }
 
       if (this.model.get("with_photos")) {
-        query.notEqualTo("image_url","");
+        query.greaterThan("num_images",0);
       }
       
       query.find().then(
