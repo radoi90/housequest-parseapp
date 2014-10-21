@@ -573,6 +573,64 @@ Parse.Cloud.afterSave(Parse.User, function (request) {
 });
 
 				request.object.save();
+// Group checks
+
+// Generate group name
+Parse.Cloud.beforeSave("Group", function (request, response) {
+	if (request.object.isNew()) {
+		var groupName = "";
+
+		// Generate random code, length 5
+		for (var i = 0; i < 5; i++) {
+			groupName += (Math.floor(Math.random() * 10)).toString();
+		}
+
+		request.object.set("group_name", groupName);
+
+		response.success();
+	} else {
+		response.success();
+	}
+});
+
+// Delete empty Groups
+Parse.Cloud.afterSave("Group", function (request) {
+	Parse.Cloud.useMasterKey();
+	
+	if (request.object.get("users").length == 0) {
+		request.object.destroy()
+		.then( function() {
+			console.log("Group " + groupName + " empty. Removed.");
+		});
+	}
+});
+
+// Delete Search, FeedEntries after deleting Group
+Parse.Cloud.afterDelete("Group", function (request) {
+	Parse.Cloud.useMasterKey();
+
+	var groupName = request.object.get("group_name");
+
+	var Search = Parse.Object.extend("Search");
+	var searchQuery = new Parse.Query("Search");
+	searchQuery.equalTo("group", request.object);
+
+	searchQuery.find()
+	.then( function (groupSearches) {
+		return Parse.Object.destroyAll(groupSearches);
+	});
+
+	var FeedEntry = Parse.Object.extend("FeedEntry");
+	var feedEntryQuery = new Parse.Query(FeedEntry);
+	feedEntryQuery.equalTo("group", request.object);
+	feedEntryQuery.limit(1000);
+
+	feedEntryQuery.find()
+	.then( function (feedEntries) {
+		return Parse.Object.destroyAll(feedEntries);
+	});
+});
+
 			}
 		);
 // Search checks
