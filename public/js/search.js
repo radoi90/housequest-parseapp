@@ -381,8 +381,8 @@ $(function() {
 
       // $('#map-container').html(_.template($("#map-buttons-template").html()));
 
-      // var transitLayer = new google.maps.TransitLayer();
-      // transitLayer.setMap(map);
+      var transitLayer = new google.maps.TransitLayer();
+      transitLayer.setMap(map);
 
       // var control = document.getElementById('transit-wpr');
       // map.controls[google.maps.ControlPosition.TOP_RIGHT].push(control);
