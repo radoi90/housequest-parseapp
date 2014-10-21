@@ -575,6 +575,48 @@ Parse.Cloud.afterSave(Parse.User, function (request) {
 				request.object.save();
 			}
 		);
+// Search checks
+
+// Create Search Alerts for each new Search
+Parse.Cloud.afterSave("Search", function (request) {
+	Parse.Cloud.useMasterKey();
+
+	if (!request.object.existed()) {
+		var FetchJob = Parse.Object.extend("FetchJob");
+		var latestJobQuery = new Parse.Query(FetchJob);
+		latestJobQuery.descending("createdAt");
+
+		latestJobQuery.first()
+		.then( function (latestJob) {
+			var SearchAlert = Parse.Object.extend("SearchAlerts");
+			var searchAlert = new SearchAlert({
+				search: request.object,
+				lastBatchChecked: latestJob.get("batchNo"),
+				ACL: new Parse.ACL()
+			});
+
+			return searchAlert.save();
+		})
+	}
+});
+
+// Delete SearchAlert after deleting Search
+Parse.Cloud.afterDelete("Search", function (request) {
+	Parse.Cloud.useMasterKey();
+
+	var SearchAlert = Parse.Object.extend("SearchAlerts");
+	var searchAlertQuery = new Parse.Query(SearchAlert);
+	searchAlertQuery.equalTo("search", request.object);
+
+	searchAlertQuery.find()
+	.then( function (searchAlerts) {
+		return Parse.Object.destroyAll(searchAlerts);
+	})
+	.then( function() {
+		console.log("Removed search Alerts");
+	});
+});
+
 // FeedEntry checks
 
 // Delete Comments after deleting 
