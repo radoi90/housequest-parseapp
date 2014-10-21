@@ -631,8 +631,56 @@ Parse.Cloud.afterDelete("Group", function (request) {
 	});
 });
 
+//
+Parse.Cloud.define("joinGroup", function (request, response) {
+	// the request must come from a logged in user
+	if (request.user && request.user.authenticated()) {
+		Parse.Cloud.useMasterKey();
+
+		var Group = Parse.Object.extend("Group");
+		var currentGroupQuery = new Parse.Query(Group);
+		currentGroupQuery.equalTo("users", request.user);
+
+		currentGroupQuery.each(
+			function (currentGroup) {
+				if (currentGroup && (currentGroup.get("group_name") != request.params.code)) {
+					currentGroup.remove("users", request.user);
+					return currentGroup.save();
+				}
 			}
 		);
+
+		var groupQuery = new Parse.Query(Group);
+		groupQuery.equalTo("group_name", request.params.code);
+
+		groupQuery.first()
+		.then(
+			function (groupToJoin) {
+				if (groupToJoin) {
+					groupToJoin.addUnique("users", request.user);
+
+					return groupToJoin.save();
+				} else {
+					response.error("Error, group not found.")
+				}
+			},
+			function (error) {
+				response.error("Error trying to find group.")
+			}
+		).then(
+			function(joinedGroup) {
+				response.success(joinedGroup)
+			},
+			function(error) {
+				response.error("Error joining new group");
+			}
+		);
+
+	} else {
+		response.error("Error, user must be authenticated.");
+	}
+});
+
 // Search checks
 
 // Create Search Alerts for each new Search
