@@ -575,6 +575,23 @@ Parse.Cloud.afterSave(Parse.User, function (request) {
 				request.object.save();
 			}
 		);
+// FeedEntry checks
+
+// Delete Comments after deleting 
+Parse.Cloud.afterDelete("FeedEntry", function (request) {
+	Parse.Cloud.useMasterKey();
+
+	var Comment = Parse.Object.extend("Comment");
+	var commentQuery = new Parse.Query(Comment);
+	commentQuery.equalTo("feed_entry", request.object);
+	commentQuery.limit(1000);
+
+	commentQuery.find().
+	then( function (comments) {
+		return Parse.Object.destroyAll(comments);
+	});
+});
+
 // Comment checks
 
 // Increment comment count on the corresponding FeedEntry
