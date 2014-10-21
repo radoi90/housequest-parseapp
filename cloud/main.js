@@ -575,6 +575,26 @@ Parse.Cloud.afterSave(Parse.User, function (request) {
 				request.object.save();
 			}
 		);
+// Comment checks
+
+// Increment comment count on the corresponding FeedEntry
+Parse.Cloud.afterSave("Comment", function(request) {
+	Parse.Cloud.useMasterKey();
+
+	var feedEntry = request.object.get("feed_entry");
+	feedEntry.increment("num_comments");
+	feedEntry.save();	
+});
+
+// Limit comment length to 1200 characters
+Parse.Cloud.beforeSave("Comment", function(request, response) {
+	if (request.user && request.user.authenticated()) {
+		var content = request.object.get("comment");
+		content && request.object.set("comment", content.substr(0,1200));
+
+		response.success();
+	} else {
+		response.error("Must be logged in to comment.");
 	}
 });
 
