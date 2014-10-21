@@ -606,6 +606,15 @@ function buildListingQuery (searchParams) {
 	return query;
 }
 
+var FeedEntry = Parse.Object.extend("FeedEntry", {
+    defaults: {
+      num_comments: 0,
+      availability: "1",
+      users_liked: [],
+      users_seen: []
+    }
+});
+
 function sendSearchAlerts (currentBatchNumber) {
 	var alertsSentPromise = new Parse.Promise();
 
@@ -630,21 +639,36 @@ function sendSearchAlerts (currentBatchNumber) {
 			listingQuery.greaterThan("batchNo", searchAlert.get("lastBatchChecked"));
 
 			// fetch the number of new listings matching search parameters
-			listingQuery.count()
+			listingQuery.find()
 			.then(
-				function (num_new_listings) {
-					if (num_new_listings > 0) {
-						return Parse.Push.send({
-						  channels: [searchAlert.get("search").get("group").get("group_name")],
-						  data: {
-						  	alert: "Surprise! You got " + num_new_listings + " new propert" + (num_new_listings == 1 ? "y!" : "ies!"),
-						  	type: 2,
-						  	sound: "default",
-						  	value: {}
-						  }
-						});
-					} else {
-						return Parse.Promise.as(0);
+				function (newListings) {
+					if (newListings.length > 0) {
+						// create feed entries for all the new matching properties
+						var newFeedEntries = [];
+
+						for (var i = 0; i < newListings.length; i++) {
+							var feedEntry = new FeedEntry();
+							feedEntry.set("group", searchAlert.get("search").get("group"));
+							feedEntry.set("listing", newListings[i]);
+
+							newFeedEntries.push(feedEntry);
+						}
+
+						// save all the new feed entries
+						return Parse.Object.saveAll(newFeedEntries)
+						.then(
+							function() {
+								return Parse.Push.send({
+								  channels: [searchAlert.get("search").get("group").get("group_name")],
+								  data: {
+								  	alert: "Surprise! You got " + newListings.length + " new propert" + (newListings.length == 1 ? "y!" : "ies!"),
+								  	type: 2,
+								  	sound: "default",
+								  	value: {}
+								  }
+								});
+							}
+						);
 					}
 				},
 				function (error) {
