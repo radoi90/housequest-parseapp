@@ -523,46 +523,54 @@ Parse.Cloud.beforeSave("FeedEntry", function (request, response) {
 	}
 });
 
-// Make sure each user belongs to a group
+// Parse.User checks
+
+// Only allow FB users
+Parse.Cloud.beforeSave(Parse.User, function (request, response) {
+	Parse.Cloud.useMasterKey();
+	
+	if (Parse.FacebookUtils.isLinked(request.object)) {
+		response.success(request.object);
+	} else {
+		response.error("User signup rejected.");
+	}
+});
+
+// Make sure each user belongs to a group, grab FB data
 Parse.Cloud.afterSave(Parse.User, function (request) {
 	Parse.Cloud.useMasterKey();
 
-	var Group = Parse.Object.extend("Group");
-	var groupQuery = new Parse.Query(Group);
-	groupQuery.equalTo("users", request.object);
+	if (!request.object.existed()) {
+		var Group = Parse.Object.extend("Group");
+		var userGroup = new Group();
+		userGroup.addUnique("users", request.object);
+					
+		userGroup.save();
 
-	groupQuery.first().then(
-		function (group) {
-			if (!group) {
-				var userGroup = new Group();
-				userGroup.addUnique("users", request.object);
-				
-				userGroup.save({
-					success: function (group) {
-						group.save({group_name: group.id});
-					}
-				});
-			}
-		}
-	);
-
-	if (!request.object.has("email")) {
 		Parse.Cloud.httpRequest({
-			url: facebook_api + request.object.get("authData").facebook.id,
+			url: facebook_api + request.user.get("authData").facebook.id,
 			headers: {
 	    		'Content-Type': 'application/json;charset=utf-8'
 	  		},
 			params: {
 			    fields 			: 'picture.width(200).height(200),first_name,last_name,email,gender',
-			    access_token	: request.object.get("authData").facebook.access_token
+			    access_token	: request.user.get("authData").facebook.access_token
 		  	}
 		}).then(
 			function(httpResponse) {
-				request.object.set("first_name", httpResponse.data.first_name);
-				request.object.set("last_name", httpResponse.data.last_name);
-				request.object.set("email", httpResponse.data.email);
-				request.object.set("gender", httpResponse.data.gender);
-				request.object.set("profile_image_url", httpResponse.data.picture.data.url);
+				var userACL = new Parse.ACL(request.user);
+				request.user.setACL(userACL);
+				request.user.set("first_name", httpResponse.data.first_name);
+				request.user.set("last_name", httpResponse.data.last_name);
+				request.user.set("email", httpResponse.data.email);
+				request.user.set("gender", httpResponse.data.gender);
+				request.user.set("profile_image_url", httpResponse.data.picture.data.url);
+
+				request.user.save();
+			}
+		);
+	}
+});
 
 				request.object.save();
 			}
