@@ -543,6 +543,10 @@ $(function() {
           state.set({ num_beds: url_num_beds });
       }
 
+      if (QueryString.invite) {
+        state.set({ invite: QueryString.invite});
+      }
+
       this.render();
     },
 
