@@ -578,15 +578,18 @@ Parse.Cloud.afterSave(Parse.User, function (request) {
 	}
 });
 
+// Parse.Installation checks
+
 // Link each Installation to its User
 Parse.Cloud.beforeSave(Parse.Installation, function (request,response) {
 	Parse.Cloud.useMasterKey();
 
-	if (!request.object.has("userId")) {
+	// If installation is saved on client side
+	if (request.user) {
 		request.object.set("userId", request.user);
 		response.success();
 	} else {
-		response.success();
+		response.success();	
 	}
 });
 
