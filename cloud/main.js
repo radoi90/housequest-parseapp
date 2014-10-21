@@ -179,7 +179,7 @@ function createListingObject(zooplaData) {
 
 var reachedLimit = false;
 // Zoopla API doesn't return listings sorted by *_published_date, check a few pages after limit
-var extraPagesToGo = 5;
+var extraPagesToGo = 3;
 
 function fetchPage(pageNumber,pageSize,currentJob) {
 	Parse.Cloud.useMasterKey();
