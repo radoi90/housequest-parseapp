@@ -572,7 +572,6 @@ Parse.Cloud.afterSave(Parse.User, function (request) {
 	}
 });
 
-				request.object.save();
 // Group checks
 
 // Generate group name
