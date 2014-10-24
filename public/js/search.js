@@ -364,7 +364,7 @@ $(function() {
 
       map.data.addListener('addfeature', function(event) {
         var areas = self.model.get("areas");
-        event.feature.setProperty('isSelected', _.contains(areas,event.feature.getProperty("name")));
+        event.feature.setProperty('isSelected', _.contains(areas, event.feature.getProperty("name")));
       });
 
       // When the user hovers, tempt them to click by outlining the letters.
@@ -513,8 +513,18 @@ $(function() {
     },
 
     saveSearch: function() {
+      // TODO: disable button
+      // TODO: hide button
       if (Parse.User.current()) {
-        this.model.save({group: state.get("group")});
+        
+        // link new search to group
+        if (this.model.isNew()) {
+          state.get("group").save({
+            search: this.model
+          });
+        } else {
+          this.model.save();
+        }
       }
     }
   });
@@ -596,37 +606,38 @@ $(function() {
         var groupQuery = new Parse.Query(Group);
         groupQuery.equalTo("users", Parse.User.current());
         groupQuery.include("users");
+        groupQuery.include("search");
 
-        groupQuery.first().then(
-          function (group) {
-            state.set({ group: group });
+        groupQuery.first().then( function (group) {
+          state.set({ group: group });
 
-            var userNav = _.template($("#nav-main-template").html());
-            var userData = _.chain(state.get("group").get("users"))
-              .filter(function(u) {
-                return u.id != Parse.User.current().id
-              })
-              .map(function (u) { 
-                return {
-                  first_name: u.get("first_name"),
-                  profile_img: u.get("profile_image_url")
-                }
-              })
-              .value();
-            $(self.navEl).html(userNav({ users: userData }));
+          // Show current user, and group members in navbar
+          var userNav = _.template($("#nav-main-template").html());
 
-            var searchQuery = new Parse.Query(Search);
-            searchQuery.equalTo("group", group);
+          // Get the array of friend names and profile images
+          var friendsData = _.chain(state.get("group").get("users"))
+            .filter(function(u) {
+              return u.id != Parse.User.current().id
+            })
+            .map(function (u) { 
+              return {
+                first_name: u.get("first_name"),
+                profile_img: u.get("profile_image_url")
+              }
+            })
+            .value();
 
-            return searchQuery.first();
-          }
-        ).then(
-          function (search) {
-            self.searchView = new SearchView({
-              model: search ? search : new Search({num_beds: state.get("num_beds")})
-            });
-          }
-        );
+          // display navbar
+          $(self.navEl).html(userNav({ users: friendsData }));
+
+          // If it exists display group's search, default search otherwise
+          var search = group.has("search") ? 
+            group.get("search") : new Search({ num_beds: state.get("num_beds") });
+
+          self.searchView = new SearchView({
+            model: search
+          });
+        });
       } else {
         $(this.navEl).html(_.template($("#nav-login-template").html()));
         this.searchView = new SearchView({
