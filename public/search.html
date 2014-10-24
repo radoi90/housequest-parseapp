@@ -96,7 +96,17 @@
   </script>
 
   <script type="text/template" id="nav-main-template">
+    <% if (users.length == 0) { %>
+      <li class="group-thumbnails action-thumbnail">
+        <a class="btn join-group" href="javascript:void(0)">
+        <i class="fa fa-group"></i> Join group</a>
+      </li>
+    <% } %>
     <li><p class="navbar-text">Your group:</p></li>
+    <li class="group-thumbnails action-thumbnail">
+      <a class="btn user-invite" href="javascript:void(0)">
+      <i class="fa fa-plus fa-lg"></i><% if (users.length == 0) { %> Add member<% } %></a>
+    </li>
     <% for(var i = 0; i < users.length; i++) { %>
       <li class="group-thumbnails">
         <img class="img-circle img-thumbnail img-profile"height="28" width="28" src="<%= users[i].profile_img %>" alt="<%= users[i].first_name %>">
