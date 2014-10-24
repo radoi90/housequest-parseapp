@@ -79,17 +79,19 @@
 	<!-- Templates -->
 	<script type="text/template" id="action-box-people-template">
 		<p>How many people moving in?</p>
-		<div class="action-options">
-			<a href="/search.html?num_beds=0,1" class="btn btn-flat btn-search">Couple</a>
-			<a href="/search.html?num_beds=2" class="btn btn-flat btn-search">Two</a>
-			<a href="/search.html?num_beds=3" class="btn btn-flat btn-search">Three</a>
-			<a href="/search.html?num_beds=4" class="btn btn-flat btn-search">Loads</a>
+		<div class="action-options row">
+			<a href="/search.html?num_beds=0,1" class="col-xs-6 col-sm-3 btn btn-flat btn-search">Couple</a>
+			<a href="/search.html?num_beds=2" class="col-xs-6 col-sm-3 btn btn-flat btn-search">Two</a>
+			<a href="/search.html?num_beds=3" class="col-xs-6 col-sm-3 btn btn-flat btn-search">Three</a>
+			<a href="/search.html?num_beds=4" class="col-xs-6 col-sm-3 btn btn-flat btn-search">Loads</a>
 		</div> <!-- .action-options -->
 	</script>
+
 	<script type="text/template" id="action-box-welcome-template">
 		<p>Welcome back <%= _.escape(Parse.User.current().get("first_name")) %></p>
-		<div class="action-options">
-			<a href="/search.html" class="btn btn-flat btn-search btn-feed">Your feed</a>
+		<div class="action-options row">
+			<a class="col-xs-12 col-sm-6 btn btn-flat btn-search user-invite">Invite friends</a>
+			<a href="/search.html" class="col-xs-12 col-sm-6 btn btn-flat btn-feed">Your feed</a>
 		</div> <!-- .action-options -->
 	</script>
 
@@ -99,14 +101,15 @@
   		<li><a class="btn btn-flat btn-search btn-nav" href='/search.html'>Search London</a></li>
 	</script>
 
-	<script type="text/template" id="mainview-template">
+	<script type="text/template" id="user-view-template">
 		<li class="dropdown">
 	        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-	        <img class="img-circle img-thumbnail img-profile"height="28" width="28" src="<%= Parse.User.current().get('profile_image_url') %>" alt="Your profile">
+	        <img class="img-circle img-thumbnail img-navbar img-profile"height="28" width="28" src="<%= Parse.User.current().get('profile_image_url') %>" alt="Your profile">
 	        <%= _.escape(Parse.User.current().get("first_name")) %> <span class="caret"></span></a>
 	        <ul class="dropdown-menu tooltip-top-right" role="menu">
-	          <li><a href="#">Update profile</a></li>
-	          <li><a href="#">Modify alerts</a></li>
+	           <li><a class="join-group" href="javascript:void(0)">Join a group</a></li>
+	          <!--<li><a href="#">Update profile</a></li>
+	          <li><a href="#">Modify alerts</a></li>-->
 	          <li class="divider"></li>
 	          <li><a class="log-out" href="#">Log out</a></li>
 	        </ul>
@@ -114,6 +117,134 @@
 	    <li>
 	    	<a class="btn btn-flat btn-search btn-nav" href='/search.html'>Your feed</a>
 	    </li>
+	</script>
+
+	<script type="text/template" id="login-modal-template">
+		<div class="modal" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
+			<div class="action-modal-dialog height-desktop-full">
+				<div class="action-modal-content height-full">
+					<div class="action-modal-body content height-full">
+						<div class="row height-full">
+						  	<div class="col-modal col-modal-main col-xs-12 col-sm-7 height-full">
+							  	<div class="modal-header">
+									<h4 class="modal-title" id="loginLabel">Login <%= loginReason %></h4>
+									<button type="button" class="close" data-dismiss="modal">
+										<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+									</button>
+								</div>
+
+								<div class="col-modal-content centered">
+							  		<a class="btn btn-flat btn-fb">
+							  			<i class="fa fa-facebook-square fa-lg"></i>Login with Facebook
+							  		</a>
+							  		<p>We will never post on your behalf.</p>
+							  		<p>We don't have email & password signup, they're so 2008.</p>
+						  		</div>
+						  	</div>
+
+						  	<div class="col-modal col-modal-side col-xs-12 col-sm-4 col-sm-offset-1 height-full">
+						  		<div class="col-modal-content">
+					  				<h5>Notifications</h5>
+					  				<p>Get pinged as soon as there's new stuff for you</p>
+					  				<h5>Groups</h5>
+					  				<p>No need to email or message links around anymore</p>
+					  				<h5>Synced</h5>
+					  				<p>Access your data from any of your devices</p>
+					  				<h5>More</h5>
+					  				<p>We'll keep building more stuff, stay tuned</p>
+						  		<div>
+						  	</div>
+						</div> <!-- .row -->
+					</div> <!-- .modal-body -->
+				</div>	<!-- .modal-content -->
+			</div>	<!-- .modal-dialog -->
+		</div> <!-- .modal -->
+	</script>
+
+	<script type="text/template" id="join-group-modal-template">
+		<div class="modal" id="joinGroupModal" tabindex="-1" role="dialog" aria-labelledby="joinGroupLabel" aria-hidden="true">
+			<div class="action-modal-dialog height-desktop-full">
+				<div class="action-modal-content height-full">
+					<div class="action-modal-body content height-full">
+						<div class="row height-full">
+						  	<div class="col-modal col-modal-main col-xs-12 col-sm-7 height-full">
+							  	<div class="modal-header">
+									<h4 class="modal-title" id="joinGroupLabel">Join group</h4>
+									<button type="button" class="close" data-dismiss="modal">
+										<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+									</button>
+								</div>
+
+								<div class="col-modal-content centered">
+									<input id="invite-code" class="form-control" type="text" placeholder="Enter group code">
+							  		<a class="btn btn-flat btn-join form-control">
+							  			<i class="fa fa-group"></i>Join this group
+							  		</a>
+						  		</div>
+						  	</div>
+
+						  	<div class="col-modal col-modal-side col-xs-12 col-sm-4 col-sm-offset-1 height-full">
+						  		<div class="col-modal-content">
+					  				<h5>Notifications</h5>
+					  				<p>Get pinged as soon as there's new stuff for you</p>
+					  				<h5>Groups</h5>
+					  				<p>No need to email or message links around anymore</p>
+					  				<h5>Synced</h5>
+					  				<p>Access your data from any of your devices</p>
+					  				<h5>More</h5>
+					  				<p>We'll keep building more stuff, stay tuned</p>
+						  		<div>
+						  	</div>
+						</div> <!-- .row -->
+					</div> <!-- .modal-body -->
+				</div>	<!-- .modal-content -->
+			</div>	<!-- .modal-dialog -->
+		</div> <!-- .modal -->
+	</script>
+
+	<script type="text/template" id="invite-modal-template">
+		<div class="modal" id="inviteModal" tabindex="-1" role="dialog" aria-labelledby="inviteLabel" aria-hidden="true">
+			<div class="action-modal-dialog height-desktop-full">
+				<div class="action-modal-content height-full">
+					<div class="action-modal-body content height-full">
+						<div class="row height-full">
+						  	<div class="col-modal col-modal-main col-xs-12 col-sm-7 height-full">
+							  	<div class="modal-header">
+									<h4 class="modal-title" id="inviteLabel">Invite friends</h4>
+									<button type="button" class="close" data-dismiss="modal">
+										<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+									</button>
+								</div>
+
+								<div class="col-modal-content centered">
+									<div class="invite-code-numerical"><%= code %></div>
+									<div class="invite-code-url">http://housequest.co.uk?invite=<%= code %></div>
+							  		<a class="btn btn-flat btn-invite btn-mail">
+							  			<i class="fa fa-envelope-o fa-lg"></i>Invite via email
+							  		</a>
+							  		<a class="btn btn-flat btn-invite btn-fb">
+							  			<i class="fa fa-facebook-square fa-lg"></i>Invite via Messenger
+							  		</a>
+						  		</div>
+						  	</div>
+
+						  	<div class="col-modal col-modal-side col-xs-12 col-sm-4 col-sm-offset-1 height-full">
+						  		<div class="col-modal-content">
+					  				<h5>Notifications</h5>
+					  				<p>Get pinged as soon as there's new stuff for you</p>
+					  				<h5>Groups</h5>
+					  				<p>No need to email or message links around anymore</p>
+					  				<h5>Synced</h5>
+					  				<p>Access your data from any of your devices</p>
+					  				<h5>More</h5>
+					  				<p>We'll keep building more stuff, stay tuned</p>
+						  		<div>
+						  	</div>
+						</div> <!-- .row -->
+					</div> <!-- .modal-body -->
+				</div>	<!-- .modal-content -->
+			</div>	<!-- .modal-dialog -->
+		</div> <!-- .modal -->
 	</script>
 
 	<!-- Latest compiled and minified JavaScript -->

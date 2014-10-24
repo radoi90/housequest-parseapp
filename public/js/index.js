@@ -24,7 +24,6 @@ var QueryString = function () {
 } ();
 
 $(function() {
-
 	Parse.$ = jQuery;
 
 	// Initialize Parse with your Parse application javascript keys
@@ -50,52 +49,209 @@ $(function() {
     fjs.parentNode.insertBefore(js, fjs);
   }(document, 'script', 'facebook-jssdk'));
 
-  var MainView = Parse.View.extend({
+  var userView = Parse.View.extend({
     actionTemplate: _.template($('#action-box-welcome-template').html()),
 
+    joinGroupModalTemplate: _.template($('#join-group-modal-template').html()),
+
+    inviteModalTemplate: _.template($('#invite-modal-template').html()),
+
     events: {
+      "click .join-group": "showJoinGroupModal",
       "click .log-out": "logOut"
     },
 
     el: ".button-container",
 
     initialize: function() {
+      var self = this;
+      _.bindAll(this, "logOut", "showJoinGroupModal", "showInviteModal", "render");
+      
+      var Group = Parse.Object.extend("Group");
+      var groupQuery = new Parse.Query(Group);
+      groupQuery.equalTo("users", Parse.User.current());
+      groupQuery.select(["group_name"]);
+
+      groupQuery.first()
+      .then( function (group) {
+        if (group) {
+          state.set("group", group);
+          $('.user-invite').bind("click", $.proxy(self.showInviteModal, self));
+        }
+      });
+
       this.render();
-      _.bindAll(this, "logOut", "render");
+
+      if (QueryString.invite) {
+        this.joinGroup(QueryString.invite);
+      }
+    },
+
+    joinGroupManual: function() {
+      var codeField = $("#invite-code");
+
+      codeField.val() && this.joinGroup(codeField.val());
+    },
+
+    joinGroup: function (code) {
+      Parse.Cloud.run("joinGroup", {code: code})
+      .then( function (group) {
+        // reload page if user joined group succesfully
+        window.location = window.location.origin + window.location.pathname;
+      }, function (error) {
+        log(error);
+      });
+    },
+
+    showJoinGroupModal: function() {
+      var self = this;
+
+      // Insert modal and load it
+      $('body').append(self.joinGroupModalTemplate());
+      $('#joinGroupModal').modal();
+        
+      // Since the modal is inserted after jQuery loads we need to re-bind
+      // the click events which close the modal (outside model, on 'x' sign)
+      $('html').bind("click", self.hidejoinGroupModal);
+      $('button.close').bind("click", self.hidejoinGroupModal);
+      $('.action-modal-dialog').bind("click", function(event){
+          event.stopPropagation();
+      });
+
+      // bind the login with facebook button
+      $('.btn-join').bind("click", $.proxy(self.joinGroupManual, self));
+
+      return false;
+    },
+
+    hidejoinGroupModal: function() {
+      // Unbind the click events
+      $('html').unbind("click");
+      $('button.close').unbind("click");
+      $('.action-modal-dialog').unbind("click");
+
+      // Remove modal and opaque backdrop
+      $('#joinGroupModal').modal('hide');
+      $('#joinGroupModal').remove();
+      $('.modal-backdrop').remove();
+    },
+
+    showInviteModal: function() {
+      var self = this;
+      
+      // Insert modal and load it
+      $('body').append(self.inviteModalTemplate({code: state.get("group").get("group_name")}));
+      $('#inviteModal').modal();
+      
+      // Since the modal is inserted after jQuery loads we need to re-bind
+      // the click events which close the modal (outside model, on 'x' sign)
+      $('html').bind("click", self.hideInviteModal);
+      $('button.close').bind("click", self.hideInviteModal);
+      $('.action-modal-dialog').bind("click", function(event){
+          event.stopPropagation();
+      });
+
+      // bind the login with facebook button
+      $('.btn-fb').bind("click", $.proxy(self.sendFbMessage, self));
+
+      return false;
+    },
+
+    hideInviteModal: function() {
+      // Unbind the click events
+      $('html').unbind("click");
+      $('button.close').unbind("click");
+      $('.action-modal-dialog').unbind("click");
+
+      // Remove modal and opaque backdrop
+      $('#inviteModal').modal('hide');
+      $('#inviteModal').remove();
+      $('.modal-backdrop').remove();
+    },
+
+    sendFbMessage: function() {
+      FB.ui({
+        app_id: 1570124209875630,
+        method: 'send', 
+        link: 'http://www.housequest.co.uk?invite=' 
+                + state.get("group").get("group_name")
+      });
     },
 
     logOut: function(e) {
       Parse.User.logOut();
-      new LogInView();
+      new noUserView();
       this.undelegateEvents();
       delete this;
     },
 
     render: function() {
       var self = this;
-      this.$el.html(_.template($("#mainview-template").html()));
+      this.$el.html(_.template($("#user-view-template").html()));
       $('#action-box').html(self.actionTemplate());
 
       this.delegateEvents();
     }
   });
 
-	var LogInView = Parse.View.extend({
+	var noUserView = Parse.View.extend({
     actionTemplate: _.template($('#action-box-people-template').html()),
 
+    loginModalTemplate: _.template($('#login-modal-template').html()),
+
     events: {
-      "click .login-fb": "logInFb",
+      "click .login-fb": "showLoginModal",
+      "click .btn-fb": "loginFb"
     },
 
     el: ".button-container",
     
     initialize: function() {
-      _.bindAll(this, "logInFb", "render");
+      _.bindAll(this, "showLoginModal", "loginFb", "render");
       this.render();
+
+      if (QueryString.invite) {
+        this.showLoginModal("to join group");
+      }
     },
 
-    logInFb: function(e) {
+    showLoginModal: function(e) {
       var self = this;
+      var reason = (typeof e === "string") ? e : "";
+
+      // Insert modal and load it
+      $('body').append(self.loginModalTemplate({loginReason: reason}));
+      $('#loginModal').modal();
+        
+      // Since the modal is inserted after jQuery loads we need to re-bind
+      // the click events which close the modal (outside model, on 'x' sign)
+      $('html').bind("click", self.hideLoginModal);
+      $('button.close').bind("click", self.hideLoginModal);
+      $('.action-modal-dialog').bind("click", function(event){
+          event.stopPropagation();
+      });
+
+      // bind the login with facebook button
+      $('.btn-fb').bind("click", $.proxy(self.loginFb, self));
+
+      return false;
+    },
+
+    hideLoginModal: function() {
+      // Unbind the click events
+      $('html').unbind("click");
+      $('button.close').unbind("click");
+      $('.action-modal-dialog').unbind("click");
+
+      // Remove modal and opaque backdrop
+      $('#loginModal').modal('hide');
+      $('#loginModal').remove();
+      $('.modal-backdrop').remove();
+    },
+
+    loginFb: function() {
+      var self = this;
+      self.hideLoginModal();
 
       //Ask for default permissions
       Parse.FacebookUtils.logIn('public_profile,email,user_friends', {
@@ -103,20 +259,13 @@ $(function() {
           // fetch the FB user data
           Parse.User.current().fetch().then(
             function() {
-              new MainView();
+              new userView();
               self.undelegateEvents();
               delete self;
             }
           );
-        },
-			  error: function(user, error) {
-			    self.$("input.login-fb").removeAttr("disabled");
-			  }
-			});
-
-      this.$("input.login-fb").attr("disabled", "disabled");
-
-      return false;
+        }
+      });
     },
 
     render: function() {
@@ -139,12 +288,21 @@ $(function() {
 
 		render: function() {
       if (Parse.User.current()) {
-        new MainView();
+        new userView();
       } else {
-        new LogInView();
+        new noUserView();
       }
 		}
 	});
+
+  // This is the transient application state, not persisted on Parse
+  var AppState = Parse.Object.extend("AppState", {
+    defaults: {
+      group: undefined,
+    }
+  });
+
+  var state = new AppState;
 
 	new AppView;
 });
