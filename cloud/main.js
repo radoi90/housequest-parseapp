@@ -827,7 +827,10 @@ function buildListingQuery (searchParams) {
 	var query = new Parse.Query(Listing);
 
 	if (searchParams.num_beds.length > 0) {
-		query.containedIn("num_bedrooms", searchParams.num_beds);
+		var beds = searchParams.num_beds;
+        _.contains(beds, 4) && beds.push(5,6,7,8,9,10);
+
+        query.containedIn("num_bedrooms", beds);
 	}
 
 	if (searchParams.areas.length > 0) {
