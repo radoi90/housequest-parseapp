@@ -188,6 +188,11 @@ $(function() {
     // Cache the template function for a single item.
     template: _.template($('#listing-template').html()),
 
+    events: {
+      "mouseenter .listing-container"   : "highlightOn",
+      "mouseleave .listing-container"   : "highlightOff",
+    },
+
     initialize: function() {
       var self = this;
       this.entry = new FeedEntry({listing: this.model});
@@ -206,9 +211,14 @@ $(function() {
           }
         });
       }
+      
+      this.renderMarker();
     },
 
     onClose: function(){
+      this.marker.setMap(null);
+      this.marker = null;
+
       this.entry && this.entry.unbind("change", this.render);
     },
 
@@ -223,6 +233,58 @@ $(function() {
       $(this.el).html(this.template(listingJSON));
 
       return this;
+    },
+
+    renderMarker: function() {
+      var self = this;
+      var map = self.options.map;
+
+      var myLatLng = new google.maps.LatLng(this.model.get('location').latitude, this.model.get('location').longitude);
+      var bounds = map.getBounds();
+      
+      //if map bounds are on default center map at current marker
+      if (map.getCenter() == CHARING_CROSS) {
+        map.setCenter(myLatLng);
+      } 
+      //if markers present check if bounds need altering
+      else if (!bounds.contains(myLatLng)) {
+        bounds.extend(myLatLng);
+        map.fitBounds(bounds);
+      }
+
+      this.marker = new google.maps.Marker({
+        position: myLatLng,
+        map: map,
+        title: this.model.get("price_per_month").toString(),
+      });
+
+      google.maps.event.addListener(this.marker, 'click', function() {
+        // highlight listing container
+        $('.highlighted-container').removeClass("highlighted-container");
+        $('#' + self.id + ' .listing-container').addClass("highlighted-container");
+
+        // scroll to listing container
+        $('.col-content').animate({
+          scrollTop: $('.col-content').scrollTop() + $('#search-container').height() - $('.navbar').height() + 
+          $('#' + self.id + ' .listing-container').position().top - $('#' + self.id + ' .listing-container').height()
+        }, 1000);
+      });
+    },
+
+    highlightOn: function() {
+      var map = this.options.map;
+
+      if (!map.getBounds().contains(this.marker.getPosition())) {
+        var bounds = map.getBounds();
+        bounds.extend(this.marker.getPosition());
+
+        map.fitBounds(bounds);
+      }
+      this.marker.setAnimation(google.maps.Animation.BOUNCE);
+    },
+
+    highlightOff: function() {
+      this.marker.setAnimation(null);
     }
   });
 
@@ -248,6 +310,8 @@ $(function() {
     el: "#search-container",
 
     template: _.template($('#search-template').html()),
+
+    transitLayerTemplate: _.template($("#map-buttons-template").html()),
 
     events: {
       "change #areas"           : "changeAreas",
@@ -379,17 +443,17 @@ $(function() {
         map.data.revertStyle();
       });
 
-      // $('#map-container').html(_.template($("#map-buttons-template").html()));
+      $('#map-container').append(this.transitLayerTemplate());
 
       var transitLayer = new google.maps.TransitLayer();
       transitLayer.setMap(map);
 
-      // var control = document.getElementById('transit-wpr');
-      // map.controls[google.maps.ControlPosition.TOP_RIGHT].push(control);
+      var control = document.getElementById('transit-wpr');
+      map.controls[google.maps.ControlPosition.TOP_RIGHT].push(control);
 
-      // google.maps.event.addDomListener(control, 'click', function() {
-      //   transitLayer.setMap(transitLayer.getMap() ? null : map);
-      // });
+      google.maps.event.addDomListener(control, 'click', function() {
+        transitLayer.setMap(transitLayer.getMap() ? null : map);
+      });
     },
 
     render: function() {
@@ -450,21 +514,27 @@ $(function() {
 
     performSearch: function() {
       var self = this;
+      this.clearResults();
+      //if other search still running remove their callbacks
+      if (this.searchPromise)
+        this.searchPromise._resolvedCallbacks = [];
+
       var dateLimit = new Date();
       dateLimit.setDate(dateLimit.getDate() - 5);
-
-      this.clearResults();
 
       var Listing = Parse.Object.extend("Listing");
       var query = new Parse.Query(Listing);
       query.select(["details_url", "last_published_date", "outcode", "borough",
-                    "price_per_month", "image_urls"])
+                    "price_per_month", "image_urls","location"])
       .descending("last_published_date")
       .greaterThanOrEqualTo("last_published_date", dateLimit);
 
-
       if (this.model.get("num_beds").length > 0) {
-        query.containedIn("num_bedrooms", this.model.get("num_beds"));
+        //clone this.mode.beds
+        var beds = this.model.get("num_beds").slice(0);
+        _.contains(beds, 4) && beds.push(5,6,7,8,9,10);
+
+        query.containedIn("num_bedrooms", beds);
       }
 
       if (this.model.get("areas").length > 0) {
@@ -487,21 +557,22 @@ $(function() {
         query.greaterThan("num_images",0);
       }
       
-      query.find().then(
-        function (results) {
-          for (var i = 0; i < results.length; i++) {
-            var view = new ListingView({
-              model: results[i],
-              id: results[i].id
-            });
-            self.listingViews.push(view);
-            this.$("#list-container").append(view.render().el);
-          }
-        },
-        function (error) {
-          console.log("Error fetching properties. Error message: " + error.message);
+      console.log(query.toJSON());
+      this.searchPromise = query.find();
+
+      this.searchPromise.done(function (results) {
+        self.clearResults();
+
+        for (var i = 0; i < results.length; i++) {
+          var view = new ListingView({
+            model: results[i],
+            id: results[i].id,
+            map: self.map
+          });
+          self.listingViews.push(view);
+          this.$("#list-container").append(view.render().el);
         }
-      );
+      });
     },
 
     clearResults: function() {
