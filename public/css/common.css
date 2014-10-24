@@ -61,6 +61,17 @@ sub, sup {
 sup {
   top: -0.4em;
 }
+nav i {
+    padding: 7.5px 6.5px 6.5px;
+    display: inline-block;
+    border-style: solid;
+    border-color: #fff;
+    border-width: 2px;
+    border-radius: 100%;
+}
+.btn:hover, a:hover {
+  color: inherit;
+}
 .height-full {
   height: 100%;
 }
@@ -169,14 +180,24 @@ margin-left: -10px;
 .navbar-default li, .navbar-default .navbar-text {
   color: #fff;
 }
-.img-profile {
+.navbar-default .navbar-text {
+  padding-left: 15px;
+  padding-top: 3px;
+}
+.img-navbar {
   height: 32px;
   width: 32px;
   padding: 1px;
   margin: -6px 5px;
 }
-.group-thumbnails {
-  padding: 15px 3px;
+.nav>.group-thumbnails>a {
+  padding: 15px 0px 15px 15px;
+}
+.nav>.action-thumbnail>a.join-group {
+  padding: 9px 9px 8px;
+}
+.nav>.action-thumbnail>a.user-invite {
+  padding: 11px 9px 7px;
 }
 .navbar-nav>li>input {
   background: transparent;
@@ -214,6 +235,116 @@ margin-left: -10px;
   background-color: #34495E;
 }
 
+/* Buttons */
+.btn-flat {
+  font-size: 110%;
+  padding: 10px 5px;
+  color: white;
+  text-align: center;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: AvenirNext LT Pro Medium;
+  background: #f1c40f;
+  border-bottom: 1px solid #A0861D;
+  -webkit-box-shadow: inset 0 -2px #A0861D;
+  box-shadow: inset 0 -2px #A0861D;
+  outline: none;
+}
+.btn-flat:active {
+  top: 1px;
+  outline: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+.btn-flat+.btn-flat {
+  border-left: 1px solid #A0861D;
+}
+.btn-search:hover {
+  background: #E5D07D;
+}
+.btn-feed {
+  margin-bottom: 3px;
+}
+.btn-fb {
+  background: #3b5998;
+  border-bottom: 1px solid #8b9dc3;
+  -webkit-box-shadow: inset 0 -2px #8b9dc3;
+  box-shadow: inset 0 -2px #8b9dc3;
+}
+.btn-mail {
+  background: #fff;
+  color: red;
+}
+.btn-join {
+  background: #2980b9;
+  border-bottom: 1px solid #8b9dc3;
+  -webkit-box-shadow: inset 0 -2px #8b9dc3;
+  box-shadow: inset 0 -2px #8b9dc3;
+}
+.col-modal-content .btn-flat {
+  font-size: 90%;
+  font-family: 'AvenirNext LT Pro Regular';
+  padding-right: 10px;
+}
+.col-modal-content .btn-flat>i {
+  padding: 0 5px;
+}
+
+/* Modals */
+
+/* Login modal */
+
+.modal {
+  width: 740px;
+  height: 320px;
+  position: absolute;
+  margin-left: -370px;
+  margin-top: -190px;
+  left: 50%;
+  top: 50%;
+  z-index: 10000;
+  display: none;
+}
+
+.col-modal {
+  padding: 15px 25px;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.col-modal-main {
+  background: #f1c40f;
+}
+.col-modal-side {
+  background: #34495e;
+}
+.col-modal-content>p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+}
+.col-modal-content>a {
+  margin: 10px 0;
+}
+.col-modal-content>.form-control {
+  width: 80%;
+  max-width: 400px;
+  margin: 10px auto;
+  border-radius: 0;
+  outline: none;
+}
+.col-modal h4, .col-modal h5 {
+  font-family: 'AvenirNext LT Pro Demi';
+}
+.col-modal-side h6 {
+  margin-bottom: 5px;
+  margin-top: 20px;
+}
+.modal-header .close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
 @media (max-width: 767px) {
   .tooltip-top-right:before {
     display: none;
@@ -224,6 +355,15 @@ margin-left: -10px;
   .navbar-default .navbar-nav .open .dropdown-menu>li>a {
     color: #fff;
   }
+
+.modal {
+    width: 80%;
+    margin-left: -40%;
+    left: 50%;
+    top: 0;
+    margin-top: 10px;
+    height: initial;
+  }
 }
 @media (min-width: 768px) {
   .height-desktop-full {
@@ -232,6 +372,16 @@ margin-left: -10px;
   .navbar-nav>li>input {
     padding-top: 15px;
     padding-bottom: 15px;
+  }
+  .col-modal-content {
+    position: relative; 
+    top: 50%;
+  }
+  .col-modal-main .col-modal-content {
+    margin-top: -100px;
+  }
+  .col-modal-side .col-modal-content {
+    margin-top: -130px;
   }
 }
 
