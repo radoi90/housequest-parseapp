@@ -5,6 +5,14 @@ var facebook_api = 'https://graph.facebook.com/v2.1/';
 
 var featureList = ["dishwasher","garden","parking","balcony","gym","swimming pool","gated","bills included"];
 
+var HQNotificationTypes = {
+	HQNotificationTypeLike          : 0,
+    HQNotificationTypeComment       : 1,
+    HQNotificationTypeNewProperty   : 2,
+    HQNotificationTypeAvailability  : 3,
+    HQNotificationTypeViewingBooked : 4
+}
+
 Parse.Cloud.job("zooplaClone", function(request, status) {
 	Parse.Cloud.useMasterKey();
 
