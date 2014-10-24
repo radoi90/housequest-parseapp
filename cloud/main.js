@@ -95,7 +95,8 @@ function createJob(prevJob) {
 		startedAt	: new Date(),
 		firstId		: prevJob.get("firstId"),	//in case of empty batch
 		limitId		: prevJob.get("firstId"),
-		limitDate	: dateLimit
+		limitDate	: dateLimit,
+		ACL 		: new Parse.ACL()
 	});
 
 	return newJob;
