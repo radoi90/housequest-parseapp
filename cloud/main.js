@@ -22,75 +22,53 @@ Parse.Cloud.job("zooplaClone", function(request, status) {
 	var jobQuery = new Parse.Query(FetchJob);
 	jobQuery.descending("createdAt");
 
-	jobQuery.first().then(
-		function(latestJob) {
-			console.log("Setting up current fetch job");
- 			var currentJob = createJob(latestJob);
+	jobQuery.first()
+	.then(function (latestJob) {
+	console.log("Setting up current fetch job");
+		var currentJob = createJob(latestJob);
 
- 			console.log("Cloning up to ID: " + currentJob.get("limitId") +
- 						 " or date: " + currentJob.get("limitDate"));
+		console.log("Cloning up to ID: " + currentJob.get("limitId") +
+					 " or date: " + currentJob.get("limitDate"));
 
- 			return currentJob.save();
-		},
-		function(error) {
-			console.error('Error ' + error.code + " " + error.message);
-			status.error("Cloning failed, error fetching last job information.");
-		}
-	).then(
-		function(currentJob) {
-			// Zoopla queries show max 100 results per page
-			var pageNumber = 1, pageSize = 100;
+		return currentJob.save();
+	})
+	.then(function (currentJob) {
+		// Zoopla queries show max 100 results per page
+		var pageNumber = 1, pageSize = 100;
 
-			console.log("Begining fetch");
-			return fetchPage(pageNumber, pageSize, currentJob);
-		},
-		function(error){
-			console.error('Error ' + error.code + " " + error.message);
-			status.error("Cloning failed, error saving job information.");
-		}
-	).then(
-		function(completedJob) {
-			console.log("Getting batch size");
-			var promise = new Parse.Promise();
-			var statsQuery = new Parse.Query(Listing);
-			statsQuery.equalTo("batchNo", completedJob.get("batchNo"));
+		console.log("Beginning fetch");
+		return fetchPage(pageNumber, pageSize, currentJob);
+	})
+	.then(function (completedJob) {
+		console.log("Getting batch size");
+		var promise = new Parse.Promise();
+		var statsQuery = new Parse.Query(Listing);
+		statsQuery.equalTo("batchNo", completedJob.get("batchNo"));
 
-			statsQuery.count({
-				success: function(batchSize) {
-					completedJob.set("batchSize", batchSize);
-					promise.resolve(completedJob);
-				},
-				error: function(error) {
-					promise.reject(error);
-				}
-			});
+		statsQuery.count({
+			success: function(batchSize) {
+				completedJob.set("batchSize", batchSize);
+				promise.resolve(completedJob);
+			},
+			error: function(error) {
+				promise.reject(error);
+			}
+		});
 
-			return promise;
-		},
-		function(error) {
-			status.error("Cloning failed, error fetching data");
-		}
-	).then(
-		function(completedJob) {
-			console.log("Saving job, finished at " + completedJob.get("finishedAt"));
-			
-			return completedJob.save();
-		},
-		function(error) {
-			status.error("Cloning failed, error fetching batch size");
-		}
-	).then(
-		function(savedJob) {
-			console.log("Successful job, added " + savedJob.get("batchSize") + ". Sending search alerts.");
-			return sendSearchAlerts(savedJob.get("batchNo"));
-			status.success("Cloning finished.");
-		},
-		function(error) {
-			console.error('Error ' + error.code + " " + error.message);
-			status.error("Cloning failed, error saving job information.");
-		}
-	).then(
-		function() {
+		return promise;
+	})
+	.then(function(completedJob) {
+		console.log("Saving job, finished at " + completedJob.get("finishedAt"));
+		
+		return completedJob.save();
+	})
+	.then(function(savedJob) {
+		console.log("Successful job, added " + savedJob.get("batchSize") + ". Sending search alerts.");
+		return sendNotifications(savedJob.get("batchNo"));
+	})
+	.then(
+		function (result) {
+			console.log(result);
 			console.log("Job finished successfully. Exiting");
 			status.success("Cloning finished.");
 		},
