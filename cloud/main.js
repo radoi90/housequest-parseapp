@@ -478,38 +478,6 @@ Parse.Cloud.beforeSave("Listing", function (request, response) {
 	}
 });
 
-// Propagate FeedEntry changes to the Listing model if needed
-Parse.Cloud.beforeSave("FeedEntry", function (request, response) {
-	var _ = require("underscore");
-
-	// check if any changes to Listing are needed
-	if (!request.master && (request.object.dirty("users_seen") || request.object.dirty("users_liked"))) {
-		Parse.Cloud.useMasterKey();
-
-		if (request.object.dirty("users_seen")) {
-			request.object.get("listing").increment("num_seen");
-		}
-
-		if (request.object.dirty("users_liked")) {
-			var diff = _.contains(request.object.get("users_liked"), request.user) ? 1 : -1;
-
-			var diff = _.chain(request.object.get("users_liked"))
-				.map(function(user) { return user.id })
-				.contains(request.user.id)
-				.value() ? 1 : -1;
-
-			request.object.get("listing").increment("num_likes", diff);
-		}
-
-		request.object.get("listing").save().then(
-			function(){response.success();},
-			function(){response.error();}
-		);
-	} else {
-		response.success();
-	}
-});
-
 // Parse.User checks
 
 // Only allow FB users
@@ -594,76 +562,69 @@ Parse.Cloud.afterSave("Group", function (request) {
 // Delete Search, FeedEntries after deleting Group
 Parse.Cloud.afterDelete("Group", function (request) {
 	Parse.Cloud.useMasterKey();
-
-	var groupName = request.object.get("group_name");
-
-	var Search = Parse.Object.extend("Search");
-	var searchQuery = new Parse.Query("Search");
-	searchQuery.equalTo("group", request.object);
-
-	searchQuery.find()
-	.then( function (groupSearches) {
-		return Parse.Object.destroyAll(groupSearches);
-	});
+	
+	if (request.object.has("search")) {
+		request.object.get("search").destroy();
+	}
 
 	var FeedEntry = Parse.Object.extend("FeedEntry");
 	var feedEntryQuery = new Parse.Query(FeedEntry);
 	feedEntryQuery.equalTo("group", request.object);
-	feedEntryQuery.limit(1000);
 
-	feedEntryQuery.find()
-	.then( function (feedEntries) {
-		return Parse.Object.destroyAll(feedEntries);
+	feedEntryQuery.each(function (feedEntry) {
+		feedEntry.destroy();
 	});
 });
 
-//
+// add a user to a group based on the invite code (= group_name)
 Parse.Cloud.define("joinGroup", function (request, response) {
 	// the request must come from a logged in user
 	if (request.user && request.user.authenticated()) {
 		Parse.Cloud.useMasterKey();
 
 		var Group = Parse.Object.extend("Group");
-		var currentGroupQuery = new Parse.Query(Group);
-		currentGroupQuery.equalTo("users", request.user);
+		var newGroup;
+		var newGroupQuery = new Parse.Query(Group);
+		newGroupQuery.equalTo("group_name", request.params.code);
 
-		currentGroupQuery.each(
-			function (currentGroup) {
-				if (currentGroup && (currentGroup.get("group_name") != request.params.code)) {
+		// check if user is trying to join an existing group
+		newGroupQuery.first()
+		.then( function (groupToJoin) {
+			if (groupToJoin) {
+				groupToJoin.addUnique("users", request.user);
+				newGroup = groupToJoin;
+
+				// remove from current Group
+				var currentGroupQuery = new Parse.Query(Group);
+				currentGroupQuery.equalTo("users", request.user);
+
+				return currentGroupQuery.each( function (currentGroup) {
 					currentGroup.remove("users", request.user);
 					return currentGroup.save();
-				}
+				});
+			} else {
+				var error = new Parse.Promise();
+				error.reject("Error, group not found");
+				
+				return error;
 			}
-		);
-
-		var groupQuery = new Parse.Query(Group);
-		groupQuery.equalTo("group_name", request.params.code);
-
-		groupQuery.first()
+		})
+		.then( function () {
+			if (newGroup) {
+				return newGroup.save();	
+			}
+		})
 		.then(
-			function (groupToJoin) {
-				if (groupToJoin) {
-					groupToJoin.addUnique("users", request.user);
-
-					return groupToJoin.save();
-				} else {
-					response.error("Error, group not found.")
-				}
+			function (currentGroup) {
+				response.success(currentGroup);
 			},
 			function (error) {
-				response.error("Error trying to find group.")
-			}
-		).then(
-			function(joinedGroup) {
-				response.success(joinedGroup)
-			},
-			function(error) {
-				response.error("Error joining new group");
+				response.error(error);
 			}
 		);
 
 	} else {
-		response.error("Error, user must be authenticated.");
+		response.error("Error, user must be authenticated");
 	}
 });
 
@@ -674,21 +635,13 @@ Parse.Cloud.afterSave("Search", function (request) {
 	Parse.Cloud.useMasterKey();
 
 	if (!request.object.existed()) {
-		var FetchJob = Parse.Object.extend("FetchJob");
-		var latestJobQuery = new Parse.Query(FetchJob);
-		latestJobQuery.descending("createdAt");
+		var SearchAlert = Parse.Object.extend("SearchAlert");
+		var searchAlert = new SearchAlert({
+			search: request.object,
+			ACL: new Parse.ACL()
+		});
 
-		latestJobQuery.first()
-		.then( function (latestJob) {
-			var SearchAlert = Parse.Object.extend("SearchAlerts");
-			var searchAlert = new SearchAlert({
-				search: request.object,
-				lastBatchChecked: latestJob.get("batchNo"),
-				ACL: new Parse.ACL()
-			});
-
-			return searchAlert.save();
-		})
+		searchAlert.save();
 	}
 });
 
@@ -696,20 +649,128 @@ Parse.Cloud.afterSave("Search", function (request) {
 Parse.Cloud.afterDelete("Search", function (request) {
 	Parse.Cloud.useMasterKey();
 
-	var SearchAlert = Parse.Object.extend("SearchAlerts");
+	var SearchAlert = Parse.Object.extend("SearchAlert");
 	var searchAlertQuery = new Parse.Query(SearchAlert);
 	searchAlertQuery.equalTo("search", request.object);
 
-	searchAlertQuery.find()
-	.then( function (searchAlerts) {
-		return Parse.Object.destroyAll(searchAlerts);
+	searchAlertQuery.each( function (searchAlert) {
+		searchAlert.destroy();
 	})
 	.then( function() {
 		console.log("Removed search Alerts");
 	});
 });
 
+// SearchAlert checks
+
+// initialize with current FetchJob number
+Parse.Cloud.beforeSave("SearchAlert", function (request, response) {
+	Parse.Cloud.useMasterKey();
+
+	if (request.object.isNew()) {
+		var FetchJob = Parse.Object.extend("FetchJob");
+		var latestJobQuery = new Parse.Query(FetchJob);
+		latestJobQuery.descending("createdAt");
+
+		latestJobQuery.first()
+		.then( function (latestJob) {
+			var fifteenMinutesAgo = new Date();
+			tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 15);
+
+			request.object.set({
+				lastBatchChecked: latestJob.get("batchNo"),
+				lastPushAt 		: fifteenMinutesAgo,
+				ACL 			: new Parse.ACL()
+			});
+			response.success();
+		});
+	} else {
+		response.success();
+	}
+});
+
 // FeedEntry checks
+
+// Propagate FeedEntry changes to the Listing model if needed, send notificaitons
+Parse.Cloud.beforeSave("FeedEntry", function (request, response) {
+	var _ = require("underscore");
+
+	// check if any changes to Listing are needed
+	if (request.user) {
+		request.object.get("group").fetch()
+		.then(function() {
+			Parse.Cloud.useMasterKey();
+
+			var listingNeedsUpdate = false;
+			var notificationMessage = "";
+			var notificaitonType;
+
+			// can't 'unsee' a listing, can only increment users_seen
+			if (request.object.dirty("users_seen")) {
+				listingNeedsUpdate = true;
+				request.object.get("listing").increment("num_seen");
+			}
+
+			// check if user liked (added to users_liked)
+			// or unliked (removed from users_liked)
+			if (request.object.dirty("users_liked")) {
+				listingNeedsUpdate = true;
+				var diff = _.chain(request.object.get("users_liked"))
+					.map(function(user) { return user.id })
+					.contains(request.user.id)
+					.value() ? 1 : -1;
+
+				request.object.get("listing").increment("num_likes", diff);
+
+				notificaitonType = HQNotificationTypes.HQNotificationTypeLike;
+				notificationMessage = request.user.get("first_name") + 
+					(diff > 0 ? " liked " : " unliked ") + "a property.";
+			}
+
+			if (request.object.dirty("availability")) {
+				notificaitonType = HQNotificationTypes.HQNotificationTypeAvailability;
+				notificationMessage = request.user.get("first_name") + 
+					" changed the availability on a property";
+			}
+
+			if (request.object.dirty("num_comments")) {
+				notificaitonType = HQNotificationTypes.HQNotificationTypeComment;
+				notificationMessage = request.user.get("first_name") + 
+					" commented on a property";
+			}
+			
+			var query = new Parse.Query(Parse.Installation);
+			console.log(request.object.get("group"));
+			query.containedIn('userId', request.object.get("group").get("users"));
+			query.notEqualTo('userId', request.user);
+
+			console.log(query.toJSON());
+
+			Parse.Push.send({
+			  where: query,
+			  data: {
+			  	alert: notificationMessage,
+			  	type: notificaitonType,
+			  	sound: "default",
+			  	value: {
+			  		name: request.user.get("first_name")
+			  	}
+			  }
+			})
+			.then( function() {
+				if (listingNeedsUpdate) {
+					return request.object.get("listing").save();
+				}
+			})
+			.then(
+				function(){response.success();},
+				function(){response.success();}
+			);
+		});
+	} else {
+		response.success();
+	}
+});
 
 // Delete Comments after deleting 
 Parse.Cloud.afterDelete("FeedEntry", function (request) {
@@ -718,11 +779,9 @@ Parse.Cloud.afterDelete("FeedEntry", function (request) {
 	var Comment = Parse.Object.extend("Comment");
 	var commentQuery = new Parse.Query(Comment);
 	commentQuery.equalTo("feed_entry", request.object);
-	commentQuery.limit(1000);
 
-	commentQuery.find().
-	then( function (comments) {
-		return Parse.Object.destroyAll(comments);
+	commentQuery.each( function (comment) {
+		comments.destroy();
 	});
 });
 
@@ -730,11 +789,11 @@ Parse.Cloud.afterDelete("FeedEntry", function (request) {
 
 // Increment comment count on the corresponding FeedEntry
 Parse.Cloud.afterSave("Comment", function(request) {
-	Parse.Cloud.useMasterKey();
-
-	var feedEntry = request.object.get("feed_entry");
-	feedEntry.increment("num_comments");
-	feedEntry.save();	
+	if (!request.object.existed()) {
+		var feedEntry = request.object.get("feed_entry");
+		feedEntry.increment("num_comments");
+		feedEntry.save();
+	}
 });
 
 // Limit comment length to 1200 characters
@@ -797,99 +856,117 @@ var FeedEntry = Parse.Object.extend("FeedEntry", {
     }
 });
 
-function sendSearchAlerts (currentBatchNumber) {
+// send push notifications between 8AM and 10PM
+function isInNotificationHours(date) {
+	return (date.getHours() > 6 && date.getHours() < 21);
+}
+
+// enforce a 30 min spacing between pushes
+function okToPush(searchAlert) {
+	var minutesBetweenPushes = 30;
+	var lastPushDate = new Date(searchAlert.get("lastPushAt").toJSON());
+	var diff = Math.abs(new Date() - lastPushDate);
+	var diffMinutes = Math.floor(diff/1000/60);
+
+	return (diffMinutes >= minutesBetweenPushes);
+}
+
+function sendNotifications (currentBatchNumber) {
 	var alertsSentPromise = new Parse.Promise();
 
-	var SearchAlert = Parse.Object.extend("SearchAlerts");
-	var searchAlertQuery = new Parse.Query(SearchAlert);
-	searchAlertQuery.include("search");
-	searchAlertQuery.include("search.group");
-	searchAlertQuery.include("search.group.users");
+	// check if it's OK to alert users
+	if ( isInNotificationHours(new Date()) ) {
+		var SearchAlert = Parse.Object.extend("SearchAlert");
+		var searchAlertQuery = new Parse.Query(SearchAlert);
+		searchAlertQuery.include("search");
 
-	var alertsUpdatedPromises = [];
+		var alertsUpdatedPromises = [];
 
-	console.log("Fetching all SearchAlerts");
-	searchAlertQuery.each(
-		function (searchAlert) {
-			var alertUpdatedPromise = new Parse.Promise();
-			alertsUpdatedPromises.push(alertUpdatedPromise);
+		console.log("Fetching all SearchAlerts");
+		searchAlertQuery.each(
+			function (searchAlert) {
+				if (okToPush(searchAlert)) {
+					var alertUpdatedPromise = new Parse.Promise();
+					alertsUpdatedPromises.push(alertUpdatedPromise);
 
-			// build the listings query for each search
-			var listingQuery = buildListingQuery(searchAlert.get("search").toJSON());
+					// build the listings query for each search
+					var listingQuery = buildListingQuery(searchAlert.get("search").toJSON());
 
-			// query all properties added since last checked batch
-			listingQuery.greaterThan("batchNo", searchAlert.get("lastBatchChecked"));
+					// query all properties added since last checked batch
+					listingQuery.greaterThan("batchNo", searchAlert.get("lastBatchChecked"));
 
-			// fetch the number of new listings matching search parameters
-			listingQuery.find()
-			.then(
-				function (newListings) {
-					if (newListings.length > 0) {
-						// create feed entries for all the new matching properties
-						var newFeedEntries = [];
+					var count_to_send;
 
-						for (var i = 0; i < newListings.length; i++) {
-							var feedEntry = new FeedEntry();
-							feedEntry.set("group", searchAlert.get("search").get("group"));
-							feedEntry.set("listing", newListings[i]);
+					// fetch the number of new listings matching search parameters
+					listingQuery.count()
+					.then(function (num_new_listings) {
+						count_to_send = num_new_listings;
 
-							newFeedEntries.push(feedEntry);
+						if (num_new_listings > 0) {
+							// get the group that needs to receive the notification
+							var groupQuery = new Parse.Query("Group");
+							groupQuery.equalTo("search", searchAlert.get("search"));
+
+							return groupQuery.first();
 						}
+					})
+					.then(function (group) {
+						if (group) {
+							var pushQuery = new Parse.Query(Parse.Installation);
+							pushQuery.containedIn("userId", group.get("users"));
+							
+							return Parse.Push.send({
+							  where: pushQuery,
+							  data: {
+							  	alert: "Surprise! You got " + count_to_send + 
+							  		" new propert" + (count_to_send == 1 ? "y!" : "ies!"),
+							  	type: HQNotificationTypes.HQNotificationTypeNewProperty,
+							  	sound: "default",
+							  	value: {}
+							  }
+							});
+						}
+					})
+					.then(function () {
+						// save batchNumber in searchAlert
+						searchAlert.save({
+							lastBatchChecked: currentBatchNumber,
+							lastPushAt 		: new Date() 	
+						});
+					})
+					.then(
+						function (updatedAlert) {
+							alertUpdatedPromise.resolve(updatedAlert);
+						},
+						function (error) {
+							console.log("Error updating SearchAlert " + error.message);
+							alertUpdatedPromise.reject(error);
+						}
+					);
+				}
+			}
+		)
+		.then(
+			function() {
+				console.log("Waiting for all SearchAlerts to be updated");
 
-						// save all the new feed entries
-						return Parse.Object.saveAll(newFeedEntries)
-						.then(
-							function() {
-								return Parse.Push.send({
-								  channels: [searchAlert.get("search").get("group").get("group_name")],
-								  data: {
-								  	alert: "Surprise! You got " + newListings.length + " new propert" + (newListings.length == 1 ? "y!" : "ies!"),
-								  	type: 2,
-								  	sound: "default",
-								  	value: {}
-								  }
-								});
-							}
-						);
-					}
-				},
-				function (error) {
-					console.log("Error fetching new listings count for search " + searchAlert.get("search").id + " " + error.message);
-				}
-			).then(
-				function() {
-					// save batchNumber in searchAlert
-					searchAlert.save({lastBatchChecked: currentBatchNumber});
-				}
-			).then(
-				function (updatedAlert) {
-					alertUpdatedPromise.resolve(updatedAlert);
-				},
-				function (error) {
-					console.log("Error updating SearchAlert " + error.message);
-					alertUpdatedPromise.reject(error);
-				}
-			);
-		}
-	)
-	.then(
-		function() {
-			console.log("Waiting for all SearchAlerts to be updated");
-
-			return Parse.Promise.when(alertsUpdatedPromises);
-		},
-		function (error) {
-			console.error("Error fetching SearchAlerts, message:" + error.message);
-		}
-	)
-	.then(
-		function() {
-			alertsSentPromise.resolve("Sent push notifications for all saved alerts");
-		},
-		function (error) {
-			alertsSentPromise.reject("Error sending push notifications, message: " + error.message);
-		}
-	);
+				return Parse.Promise.when(alertsUpdatedPromises);
+			},
+			function (error) {
+				console.error("Error fetching SearchAlerts, message:" + error.message);
+			}
+		)
+		.then(
+			function() {
+				alertsSentPromise.resolve("Sent push notifications for all saved alerts");
+			},
+			function (error) {
+				alertsSentPromise.reject("Error sending push notifications, message: " + error.message);
+			}
+		);
+	} else {
+		alertsSentPromise.resolve("Outside notification hours, skip push.");
+	}
 
 	return alertsSentPromise;
 }
