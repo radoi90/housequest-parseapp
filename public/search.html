@@ -235,18 +235,21 @@
             </div> <!-- .listing-info-text -->
 
             <div class="listing-footer-item listing-info-transit centered">
-              <% if (_.difference(nearest_station.lines,['Overground','DLR','Emirates Air Line']).length)%>
-                <img class="transit-logo underground-logo" src="img/underground_logo.png"/>
-              <%}%>
-              <% if (_.contains(nearest_station.lines, 'DLR')) { %>
-                <img class="transit-logo dlr-logo" src="img/dlr_logo.png"/>
-              <%}%>
-              <% if (_.contains(nearest_station.lines, 'Overground')) { %>
-                <img class="transit-logo overground-logo" src="img/overground_logo.png"/>
-              <%}%>
-              <% if (nearest_station.is_railstation) { %>
-                <img class="transit-logo rail-logo" src="img/rail_logo.png"/>
-              <%}%>
+              <div class="transit-logos">
+                <span class="text-small">5 miles</span>
+                <% if (_.difference(nearest_station.lines,['Overground','DLR','Emirates Air Line']).length) { %>
+                  <img class="transit-logo underground-logo" src="img/underground_logo.png"/>
+                <%}%>
+                <% if (_.contains(nearest_station.lines, 'DLR')) { %>
+                  <img class="transit-logo dlr-logo" src="img/dlr_logo.png"/>
+                <%}%>
+                <% if (_.contains(nearest_station.lines, 'Overground')) { %>
+                  <img class="transit-logo overground-logo" src="img/overground_logo.png"/>
+                <%}%>
+                <% if (nearest_station.is_railstation) { %>
+                  <img class="transit-logo rail-logo" src="img/rail_logo.png"/>
+                <%}%>
+              </div>
               <span class="listing-nearest-transit text-small"><%=_.escape(nearest_station.name) %></span>
             </div> <!-- .listing-info-transit -->
           </div> <!-- .listing-footer-item.listing-info -->

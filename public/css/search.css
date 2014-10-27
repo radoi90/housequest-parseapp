@@ -273,12 +273,15 @@ html {
 }
 .listing-info-text {
   white-space: nowrap;
-  width: 75%;
+  width: 67%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .listing-info-transit {
-  width: 25%;
+  width: 33%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .listing-info-location {
   font-family: 'AvenirNext LT Pro Demi';
@@ -331,6 +334,6 @@ form {
 .listing-comment-composer .listing-comment-text {
   top: 0;
 }
-.transit-logo{
-  height: 10px;
+.transit-logo {
+  height: 10px
 }
