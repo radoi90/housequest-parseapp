@@ -337,3 +337,6 @@ form {
 .transit-logo {
   height: 10px
 }
+i.icon-stats + i.icon-stats {
+  padding-left: 5px;
+}

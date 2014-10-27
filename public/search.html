@@ -230,7 +230,9 @@
               <%= borough + ", " + outcode %>
               </span></br>
               <span class="listing-info-stats text-small">
-                <%= dateDiff(last_published_date.iso) + ' &#149; ' +  num_comments + ' comments' %>
+                <i class="icon-stats fa fa-clock-o"> <%= dateDiff(last_published_date.iso) %> </i>
+                <i class="icon-stats fa fa-thumb-tack"> <%= num_likes %> </i>
+                <i class="icon-stats fa fa-eye"> <%= num_seen  %> </i>
               </span>
             </div> <!-- .listing-info-text -->
 

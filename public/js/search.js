@@ -40,15 +40,13 @@ var dateDiff = function(s) {
         dayDiff = hDiff / 24,
        weekDiff = dayDiff/7;
 
-  if (weekDiff >= 2) return Math.floor(weekDiff) + " weeks ago";
-  else if (weekDiff >=1) return "1 week ago";
-  else if (dayDiff >=2) return Math.floor(dayDiff) + " days ago";
-  else if (dayDiff >=1) return "1 day ago";
-  else if (hDiff >=2) return Math.floor(hDiff) + " hours ago";
-  else if (hDiff >=1) return "1 hour ago";
-  else if (minDiff >=2) return Math.floor(minDiff) +  " minutes ago";
-  else if (minDiff >=1) return "1 minute ago";
-  else if (secDiff >=2) return Math.floor(secDiff) + " seconds ago";
+  if (weekDiff >= 2) return Math.floor(weekDiff) + " weeks";
+  else if (weekDiff >=1) return "1 week";
+  else if (dayDiff >=2) return Math.floor(dayDiff) + " days";
+  else if (dayDiff >=1) return "1 day";
+  else if (hDiff >=2) return Math.floor(hDiff) + " hours";
+  else if (hDiff >=1) return "1 hour";
+  else if (minDiff >=30) return Math.floor(minDiff) +  " min";
   else return "moments ago";
 }
 
@@ -526,7 +524,7 @@ $(function() {
       var Listing = Parse.Object.extend("Listing");
       var query = new Parse.Query(Listing);
       query.select(["details_url", "last_published_date", "outcode", "borough",
-                    "price_per_month", "image_urls","location","nearest_station"])
+                    "price_per_month", "image_urls","location","nearest_station","num_likes","num_seen"])
       .include("nearest_station")
       .descending("last_published_date")
       .greaterThanOrEqualTo("last_published_date", dateLimit);
