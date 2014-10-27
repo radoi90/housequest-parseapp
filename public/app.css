@@ -83,7 +83,7 @@ body {
 }
 
 #sign-up-header {
-	margin-top:30px;
+	margin-top:10px;
 	height: 100px;
 	text-align: center;
 }
@@ -176,7 +176,7 @@ body {
 		width: 100%;
 	}
 	#sign-up-header {
-		margin-top: 60px;
+		margin-top: 10px;
 	}
 	#screenshots {
 		display: none;
@@ -190,7 +190,7 @@ body {
 		width: 100%;
 	}
 	#sign-up-header {
-		margin-top: 60px;
+		margin-top: 10px;
 	}
 	#screenshots {
 		margin-top: 100px;
