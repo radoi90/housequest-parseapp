@@ -39,6 +39,10 @@
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
         <ul class="nav navbar-nav">
           <li class="active"><a href="#"><span class="glyphicon glyphicon-th-large"></span> Feed</a></li>
+          <li>
+            <a class="appstore-badge" href="https://itunes.apple.com/us/app/housequest-london-property/id926421721?mt=8">
+              <img class="centered" src="img/appstore-badge.svg" alt=""></a>
+          </li>
           <!--<li><a href="#"><span class="glyphicon glyphicon glyphicon-globe"></span> Activity</a></li>
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -96,12 +100,6 @@
   </script>
 
   <script type="text/template" id="nav-main-template">
-    <% if (users.length == 0) { %>
-      <li class="group-thumbnails action-thumbnail">
-        <a class="btn join-group" href="javascript:void(0)">
-        <i class="fa fa-group"></i> Join group</a>
-      </li>
-    <% } %>
     <li><p class="navbar-text">Your group:</p></li>
     <li class="group-thumbnails action-thumbnail">
       <a class="btn user-invite" href="javascript:void(0)">
@@ -237,7 +235,14 @@
             </div> <!-- .listing-info-text -->
 
             <div class="listing-footer-item listing-info-transit centered">
-              <span class="listing-nearest-transit text-small">Farringdon</span>
+              <img class="transit-logo underground-logo" src="img/underground_logo.png"/>
+              <% if (_.contains(nearest_station.lines, 'DLR')) { %>
+                <img class="transit-logo overground-logo" src="img/dlr_logo.png"/>
+              <%}%>
+              <% if (_.contains(nearest_station.lines, 'Overground')) { %>
+                <img class="transit-logo overground-logo" src="img/overground_logo.png"/>
+              <%}%>
+              <span class="listing-nearest-transit text-small"><%=_.escape(nearest_station.name) %></span>
             </div> <!-- .listing-info-transit -->
           </div> <!-- .listing-footer-item.listing-info -->
 
@@ -255,6 +260,58 @@
         </div> <!-- .listing-footer -->
       </div> <!-- .listing-content -->
     </div>
+  </script>
+
+  <script type="text/template" id="invite-modal-template">
+    <div class="modal" id="inviteModal" tabindex="-1" role="dialog" aria-labelledby="inviteLabel" aria-hidden="true">
+      <div class="action-modal-dialog height-desktop-full">
+        <div class="action-modal-content height-full">
+          <div class="action-modal-body height-full">
+            <div class="row height-full">
+                <div class="col-modal col-modal-main col-xs-12 col-sm-7 height-full">
+                  <div class="modal-header">
+                  <h4 class="modal-title" id="inviteLabel">Invite friends</h4>
+                  <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                  </button>
+                </div>
+
+                <div class="col-modal-content centered">
+
+                  <div class="invite-code invite-code-numerical">
+                    <p> Use this code to join from the app </p>
+                    <%= code %>
+                  </div>
+                  <div class="invite-code invite-code-url">
+                    <p>Or sign in online at:</p>
+                    http://housequest.co.uk?invite=<%= code %>
+                  </div>
+                    <a class="btn btn-flat btn-invite btn-mail" href="mailto:?subject=Awesome site and app for house hunting&body=Hey all,%0D%0A%0D%0AOn HouseQuest we can search for a place to rent together. Get the app at https://itunes.apple.com/us/app/housequest-london-property/id926421721?mt=8 and enter the code <%= code %> to join our group.%0D%0AOr login online at http://housequest.co.uk?invite=<%= code %>.">
+                      <i class="fa fa-envelope-o fa-lg"></i>Invite via email
+                    </a>
+                    <a class="btn btn-flat btn-invite btn-fb">
+                      <i class="fa fa-facebook-square fa-lg"></i>Invite via Messenger
+                    </a>
+                  </div>
+                </div>
+
+                <div class="col-modal col-modal-side col-xs-12 col-sm-4 col-sm-offset-1 height-full">
+                  <div class="col-modal-content">
+                    <h5>Notifications</h5>
+                    <p>Get pinged as soon as there's new stuff for you</p>
+                    <h5>Groups</h5>
+                    <p>No need to email or message links around anymore</p>
+                    <h5>Synced</h5>
+                    <p>Access your data from any of your devices</p>
+                    <h5>More</h5>
+                    <p>We'll keep building more stuff, stay tuned</p>
+                  <div>
+                </div>
+            </div> <!-- .row -->
+          </div> <!-- .modal-body -->
+        </div>  <!-- .modal-content -->
+      </div>  <!-- .modal-dialog -->
+    </div> <!-- .modal -->
   </script>
 
   <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>

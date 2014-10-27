@@ -217,9 +217,16 @@
 								</div>
 
 								<div class="col-modal-content centered">
-									<div class="invite-code-numerical"><%= code %></div>
-									<div class="invite-code-url">http://housequest.co.uk?invite=<%= code %></div>
-							  		<a class="btn btn-flat btn-invite btn-mail">
+
+									<div class="invite-code invite-code-numerical">
+										<p> Use this code to join from the app </p>
+										<%= code %>
+									</div>
+									<div class="invite-code invite-code-url">
+										<p>Or sign in online at:</p>
+										http://housequest.co.uk?invite=<%= code %>
+									</div>
+							  		<a class="btn btn-flat btn-invite btn-mail" href="mailto:?subject=Awesome site and app for house hunting&body=Hey all,%0D%0A%0D%0AOn HouseQuest we can search for a place to rent together. Get the app at https://itunes.apple.com/us/app/housequest-london-property/id926421721?mt=8 and enter the code <%= code %> to join our group.%0D%0AOr login online at http://housequest.co.uk?invite=<%= code %>.">
 							  			<i class="fa fa-envelope-o fa-lg"></i>Invite via email
 							  		</a>
 							  		<a class="btn btn-flat btn-invite btn-fb">

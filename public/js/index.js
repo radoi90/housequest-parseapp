@@ -1,5 +1,3 @@
-var log = console.log.bind(console);
-
 var QueryString = function () {
   // This function is anonymous, is executed immediately and 
   // the return value is assigned to QueryString!
@@ -95,11 +93,9 @@ $(function() {
 
     joinGroup: function (code) {
       Parse.Cloud.run("joinGroup", {code: code})
-      .then( function (group) {
+      .done( function (group) {
         // reload page if user joined group succesfully
         window.location = window.location.origin + window.location.pathname;
-      }, function (error) {
-        log(error);
       });
     },
 

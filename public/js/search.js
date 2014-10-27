@@ -1,5 +1,3 @@
-var log = console.log.bind(console);
-
 Parse.View.prototype.close = function(){
   this.remove();
   this.unbind();
@@ -225,6 +223,7 @@ $(function() {
     // Re-render the contents of the FeedEntry item.
     render: function() {
       var listingJSON = this.model.toJSON();
+      listingJSON.nearest_station = this.model.get("nearest_station").toJSON();
       var feedEntryJSON = this.entry.toJSON();
       
       for (var key in feedEntryJSON)
@@ -525,7 +524,8 @@ $(function() {
       var Listing = Parse.Object.extend("Listing");
       var query = new Parse.Query(Listing);
       query.select(["details_url", "last_published_date", "outcode", "borough",
-                    "price_per_month", "image_urls","location"])
+                    "price_per_month", "image_urls","location","nearest_station"])
+      .include("nearest_station")
       .descending("last_published_date")
       .greaterThanOrEqualTo("last_published_date", dateLimit);
 
@@ -557,7 +557,6 @@ $(function() {
         query.greaterThan("num_images",0);
       }
       
-      console.log(query.toJSON());
       this.searchPromise = query.find();
 
       this.searchPromise.done(function (results) {
@@ -605,6 +604,9 @@ $(function() {
 
   // The main view for the app
   var AppView = Parse.View.extend({
+
+    inviteModalTemplate: _.template($('#invite-modal-template').html()),
+
     // Instead of generating a new element, bind to the existing skeleton of
     // the App already present in the HTML.
     el: $("#app-container"),
@@ -669,6 +671,48 @@ $(function() {
       this.render();
     },
 
+    showInviteModal: function() {
+      var self = this;
+      
+      // Insert modal and load it
+      $('body').append(self.inviteModalTemplate({code: state.get("group").get("group_name")}));
+      $('#inviteModal').modal();
+      
+      // Since the modal is inserted after jQuery loads we need to re-bind
+      // the click events which close the modal (outside model, on 'x' sign)
+      $('html').bind("click", self.hideInviteModal);
+      $('button.close').bind("click", self.hideInviteModal);
+      $('.action-modal-dialog').bind("click", function(event){
+          event.stopPropagation();
+      });
+
+      // bind the login with facebook button
+      $('.btn-fb').bind("click", $.proxy(self.sendFbMessage, self));
+
+      return false;
+    },
+
+    hideInviteModal: function() {
+      // Unbind the click events
+      $('html').unbind("click");
+      $('button.close').unbind("click");
+      $('.action-modal-dialog').unbind("click");
+
+      // Remove modal and opaque backdrop
+      $('#inviteModal').modal('hide');
+      $('#inviteModal').remove();
+      $('.modal-backdrop').remove();
+    },
+
+    sendFbMessage: function() {
+      FB.ui({
+        app_id: 1570124209875630,
+        method: 'send', 
+        link: 'http://www.housequest.co.uk?invite=' 
+                + state.get("group").get("group_name")
+      });
+    },
+
     render: function() {
       var self = this;
 
@@ -700,6 +744,7 @@ $(function() {
 
           // display navbar
           $(self.navEl).html(userNav({ users: friendsData }));
+          $('.user-invite').bind("click", $.proxy(self.showInviteModal, self));
 
           // If it exists display group's search, default search otherwise
           var search = group.has("search") ? 

@@ -209,6 +209,9 @@ margin-left: -10px;
   padding: 10px 15px;
   line-height: 20px;
 }
+.navbar-nav>li>a.appstore-badge {
+  padding: 5px 10px;
+}
 .tooltip-top-right:before {
   content: "";
   display: inline-block;
@@ -272,9 +275,9 @@ margin-left: -10px;
   -webkit-box-shadow: inset 0 -2px #8b9dc3;
   box-shadow: inset 0 -2px #8b9dc3;
 }
-.btn-mail {
+.btn-mail, .btn-mail:hover {
   background: #fff;
-  color: red;
+  color: #dd4b39;
 }
 .btn-join {
   background: #2980b9;
@@ -309,7 +312,6 @@ margin-left: -10px;
 
 .col-modal {
   padding: 15px 25px;
-  margin-bottom: 10px;
   color: #fff;
 }
 .col-modal-main {
@@ -320,7 +322,7 @@ margin-left: -10px;
 }
 .col-modal-content>p {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 11px;
+  font-size: 12px;
 }
 .col-modal-content>a {
   margin: 10px 0;
@@ -343,6 +345,10 @@ margin-left: -10px;
   position: absolute;
   top: 10px;
   right: 10px;
+}
+.invite-code {
+  text-align: left;
+  padding: 10px;
 }
 
 @media (max-width: 767px) {
@@ -378,7 +384,7 @@ margin-left: -10px;
     top: 50%;
   }
   .col-modal-main .col-modal-content {
-    margin-top: -100px;
+    margin-top: -125px;
   }
   .col-modal-side .col-modal-content {
     margin-top: -130px;
