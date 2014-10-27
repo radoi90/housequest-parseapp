@@ -235,7 +235,9 @@
             </div> <!-- .listing-info-text -->
 
             <div class="listing-footer-item listing-info-transit centered">
-              <img class="transit-logo underground-logo" src="img/underground_logo.png"/>
+              <% if (_.difference(nearest_station.lines,['Overground','DLR','Emirates Air Line']).length)%>
+                <img class="transit-logo underground-logo" src="img/underground_logo.png"/>
+              <%}%>
               <% if (_.contains(nearest_station.lines, 'DLR')) { %>
                 <img class="transit-logo dlr-logo" src="img/dlr_logo.png"/>
               <%}%>
