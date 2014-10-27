@@ -224,6 +224,8 @@ $(function() {
     render: function() {
       var listingJSON = this.model.toJSON();
       listingJSON.nearest_station = this.model.get("nearest_station").toJSON();
+      listingJSON.nearest_station.distance = 
+        this.model.get("location").milesTo(this.model.get("nearest_station").get("location"));
       var feedEntryJSON = this.entry.toJSON();
       
       for (var key in feedEntryJSON)
