@@ -5,7 +5,7 @@
 html {
 	height: 100%;
 	overflow-x: hidden;
-	background: url("../img/lmap-fade.min.png") no-repeat center center fixed; 
+	background: url("../img/lmap-fade.jpeg") no-repeat center center fixed; 
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	-o-background-size: cover;
@@ -37,17 +37,12 @@ body {
 	background-color: #f1c40f;
 }
 .navbar-default .navbar-nav>li>a {
-	font-size: 16px;
+	font-size: 100%;
 }
 .navbar-default .navbar-nav>li>input {
-	font-size: 16px;
+	font-size: 100%;
 }
-.img-profile {
-	height: 32px;
-	width: 32px;
-	padding: 1px;
-	margin: -6px 5px;
-}
+
 /* Text */
 .banner-text {
 	font-family: AvenirNext LT Pro Demi;
@@ -57,7 +52,7 @@ body {
 	/* Let us do your renta: */
 	text-shadow: 0px 2px 0px rgba(0,0,0,0.50);
 	text-align: center;
-	margin-top: 15%;
+	margin-top: 10%;
 }
 .banner-text-sub {
 	font-family: AvenirNext LT Pro Regular;
@@ -85,8 +80,8 @@ body {
 	position: relative;
 	left: 50%;
 	margin-left: -260px;
-	margin-top: 10%;
-	margin-bottom: 10%;
+	margin-top: 8%;
+	margin-bottom: 5%;
 	overflow:hidden;
 	padding: 10px 28px;
 }
@@ -96,41 +91,6 @@ body {
 	text-shadow: 0px 2px 0px rgba(0,0,0,0.50)
 }
 
-/* Buttons */
-.btn-flat {
-	font-size: 110%;
-	padding: 10px 5px;
-	margin: 0 -2px; 
-	color: white;
-	text-align: center;
-	border: 0;
-	border-radius: 0;
-	cursor: pointer;
-	font-family: AvenirNext LT Pro Medium;
-}
-.btn-flat:active {
-	top: 1px;
-	outline: none;
-	-webkit-box-shadow: none;
-	box-shadow: none;
-}
-.btn-search {
-	width: 25%;
-	background: #f1c40f;
-	border-bottom: 1px solid #A0861D;
-	-webkit-box-shadow: inset 0 -2px #A0861D;
-	box-shadow: inset 0 -2px #A0861D;
-	outline: none;
-}
-.btn-search+.btn-search {
-	border-left: 1px solid #A0861D;
-}
-.btn-search:hover {
-	background: #E5D07D;
-}
-.btn-feed {
-	width: 40%;
-}
 .navbar-default .navbar-nav>li>a.btn-nav {
 	width: inherit;
 	padding: 7px 7px;

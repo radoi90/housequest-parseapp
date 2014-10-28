@@ -5,6 +5,14 @@ var facebook_api = 'https://graph.facebook.com/v2.1/';
 
 var featureList = ["dishwasher","garden","parking","balcony","gym","swimming pool","gated","bills included"];
 
+var HQNotificationTypes = {
+	HQNotificationTypeLike          : 0,
+    HQNotificationTypeComment       : 1,
+    HQNotificationTypeNewProperty   : 2,
+    HQNotificationTypeAvailability  : 3,
+    HQNotificationTypeViewingBooked : 4
+}
+
 Parse.Cloud.job("zooplaClone", function(request, status) {
 	Parse.Cloud.useMasterKey();
 
@@ -14,72 +22,59 @@ Parse.Cloud.job("zooplaClone", function(request, status) {
 	var jobQuery = new Parse.Query(FetchJob);
 	jobQuery.descending("createdAt");
 
-	jobQuery.first().then(
-		function(latestJob) {
-			console.log("Setting up current fetch job");
- 			var currentJob = createJob(latestJob);
+	jobQuery.first()
+	.then(function (latestJob) {
+	console.log("Setting up current fetch job");
+		var currentJob = createJob(latestJob);
 
- 			console.log("Cloning up to ID: " + currentJob.get("limitId") +
- 						 " or date: " + currentJob.get("limitDate"));
+		console.log("Cloning up to ID: " + currentJob.get("limitId") +
+					 " or date: " + currentJob.get("limitDate"));
 
- 			return currentJob.save();
-		},
-		function(error) {
-			console.error('Error ' + error.code + " " + error.message);
-			status.error("Cloning failed, error fetching last job information.");
-		}
-	).then(
-		function(currentJob) {
-			// Zoopla queries show max 100 results per page
-			var pageNumber = 1, pageSize = 100;
+		return currentJob.save();
+	})
+	.then(function (currentJob) {
+		// Zoopla queries show max 100 results per page
+		var pageNumber = 1, pageSize = 100;
 
-			console.log("Begining fetch");
-			return fetchPage(pageNumber, pageSize, currentJob);
-		},
-		function(error){
-			console.error('Error ' + error.code + " " + error.message);
-			status.error("Cloning failed, error saving job information.");
-		}
-	).then(
-		function(completedJob) {
-			console.log("Getting batch size");
+		console.log("Beginning fetch");
+		return fetchPage(pageNumber, pageSize, currentJob);
+	})
+	.then(function (completedJob) {
+		console.log("Getting batch size");
+		var promise = new Parse.Promise();
+		var statsQuery = new Parse.Query(Listing);
+		statsQuery.equalTo("batchNo", completedJob.get("batchNo"));
 
-			var promise = new Parse.Promise();
-			var statsQuery = new Parse.Query(Listing);
-			statsQuery.limit(1000);
-			statsQuery.equalTo("batchNo", completedJob.get("batchNo"));
-			statsQuery.count({
-				success: function(batchSize) {
-					completedJob.set("batchSize", batchSize);
-					promise.resolve(completedJob);
-				},
-				error: function(error) {
-					promise.reject(error);
-				}
-			});
+		statsQuery.count({
+			success: function(batchSize) {
+				completedJob.set("batchSize", batchSize);
+				promise.resolve(completedJob);
+			},
+			error: function(error) {
+				promise.reject(error);
+			}
+		});
 
-			return promise;
-		},
-		function(error) {
-			status.error("Cloning failed, error fetching data");
-		}
-	).then(
-		function(completedJob) {
-			console.log("Saving job, finished at " + completedJob.get("finishedAt"));
-			
-			return completedJob.save();
-		},
-		function(error) {
-			status.error("Cloning failed, error fetching batch size");
-		}
-	).then(
-		function(savedJob) {
-			console.log("Successful job, added " + savedJob.get("batchSize") + ". Exiting.")
+		return promise;
+	})
+	.then(function(completedJob) {
+		console.log("Saving job, finished at " + completedJob.get("finishedAt"));
+		
+		return completedJob.save();
+	})
+	.then(function(savedJob) {
+		console.log("Successful job, added " + savedJob.get("batchSize") + ". Sending search alerts.");
+		return sendNotifications(savedJob.get("batchNo"));
+	})
+	.then(
+		function (result) {
+			console.log(result);
+			console.log("Job finished successfully. Exiting");
 			status.success("Cloning finished.");
 		},
 		function(error) {
 			console.error('Error ' + error.code + " " + error.message);
-			status.error("Cloning failed, error saving job information.");
+			status.error("Cloning failed, error sending alerts.");
 		}
 	);
 });
@@ -100,7 +95,8 @@ function createJob(prevJob) {
 		startedAt	: new Date(),
 		firstId		: prevJob.get("firstId"),	//in case of empty batch
 		limitId		: prevJob.get("firstId"),
-		limitDate	: dateLimit
+		limitDate	: dateLimit,
+		ACL 		: new Parse.ACL()
 	});
 
 	return newJob;
@@ -170,7 +166,7 @@ function createListingObject(zooplaData) {
 
 var reachedLimit = false;
 // Zoopla API doesn't return listings sorted by *_published_date, check a few pages after limit
-var extraPagesToGo = 5;
+var extraPagesToGo = 3;
 
 function fetchPage(pageNumber,pageSize,currentJob) {
 	Parse.Cloud.useMasterKey();
@@ -421,39 +417,6 @@ function trimText(s) {
 
 var Listing = Parse.Object.extend("Listing");
 
-var FeedEntry = Parse.Object.extend("FeedEntry");
-
-Parse.Cloud.define("performSearch", function (request, response) {
-	var query = new Parse.Query(Listing);
-
-	if (request.params.num_beds.length > 0) {
-		query.containedIn("num_bedrooms", request.params.num_beds);
-	}
-
-	if (request.params.areas.length > 0) {
-		query.containedIn("borough", request.params.areas);
-	}
-
-	query.greaterThanOrEqualTo("price_per_month", request.params.price_min);
-
-	if (request.params.price_max < 6000) {
-		query.lessThanOrEqualTo("price_per_month", request.params.price_max);
-	}
-
-	if (request.params.with_photos) {
-		query.notEqualTo("image_url","");
-	}
-
-	query.find({
-        success: function(results) {
-        	response.success(results);
-        },
-        error: function(error) {
-        	response.error(error);
-        }
-    });
-});
-
 // Enforce uniqueness based on the listing_id column, perform other checks
 Parse.Cloud.beforeSave("Listing", function (request, response) {
 	Parse.Cloud.useMasterKey();
@@ -468,115 +431,605 @@ Parse.Cloud.beforeSave("Listing", function (request, response) {
 		// check if this listing_id already exists
 		var query = new Parse.Query(Listing);
 		query.equalTo("listing_id", request.object.get("listing_id"));
-		query.first({
-		  success: function  (object) {
-		    if (object) {
-		    	// check if there have been any updates to the version we already have 
-		    	if (object.get("last_published_date").toString() !== request.object.get("last_published_date").toString()) {
-		    		// add fields that might have been updated
-		    		object.set("last_published_date", 	request.object.get("last_published_date"));
-		    		object.set("price_per_month", 		request.object.get("price_per_month"));
-		    		object.set("price_per_week", 		request.object.get("price_per_week"));
-		    		object.set("description", 			request.object.get("description"));
-		    		object.set("image_url", 			request.object.get("image_url"));
-		    		object.set("image_urls",			request.object.get("image_urls"));
-		    		object.set("num_images",			request.object.get("num_images"));
-		    		object.set("thumbnail_url", 		request.object.get("thumbnail_url"));
-		    		object.set("available_from", 		request.object.get("available_from"));
-		    		object.set("batchNo", 				request.object.get("batchNo"));
+		query.first()
+		.then(
+			function  (object) {
+			    if (object) {
+			    	// check if there have been any updates to the version we already have 
+			    	if (object.get("last_published_date").toString() !== request.object.get("last_published_date").toString()) {
+			    		// add fields that might have been updated
+			    		object.set("last_published_date", 	request.object.get("last_published_date"));
+			    		object.set("price_per_month", 		request.object.get("price_per_month"));
+			    		object.set("price_per_week", 		request.object.get("price_per_week"));
+			    		object.set("description", 			request.object.get("description"));
+			    		object.set("image_url", 			request.object.get("image_url"));
+			    		object.set("image_urls",			request.object.get("image_urls"));
+			    		object.set("num_images",			request.object.get("num_images"));
+			    		object.set("thumbnail_url", 		request.object.get("thumbnail_url"));
+			    		object.set("available_from", 		request.object.get("available_from"));
+			    		object.set("batchNo", 				request.object.get("batchNo"));
 
-		    		// save updates to existing object, block the new object from being saved
-		    		object.save({
-		    			success: function(listing) {
-		    				response.error("Updated existing listing " + listing.get("listing_id"));
-		    			},
-		    			error: function() {
-		    				response.error("Failed to update listing " + request.object.get("listing_id"));
-		    			}
-		    		});
-		    	} else {
-		    		// trying to save a duplicate, block
-		    		response.error("Listing already exists");
-		    	}
-		    } else {
-		    	// saving listing_id for the first time, allow
-		      	response.success();
-		    }
-		  },
-		  error: function(error) {
-		    response.error("Could not validate uniqueness for this Listing object.");
-		  }
-		});
+			    		// save updates to existing object, block the new object from being saved
+			    		object.save({
+			    			success: function(listing) {
+			    				response.error("Updated existing listing " + listing.get("listing_id"));
+			    			},
+			    			error: function() {
+			    				response.error("Failed to update listing " + request.object.get("listing_id"));
+			    			}
+			    		});
+			    	} else {
+			    		// trying to save a duplicate, block
+			    		response.error("Listing already exists");
+			    	}
+			    } else {
+			    	// saving listing_id for the first time, set the nearest station
+			    	var stationQuery = new Parse.Query('UndergroundStation')
+			    	.near("location", request.object.get("location"));
+
+			    	stationQuery.first()
+			    	.done( function (station) {
+			    		request.object.set("nearest_station", station);
+
+			    		response.success();
+			    	});
+			    }
+		  	},
+			function(error) {
+		    	response.error("Could not validate uniqueness for this Listing object.");
+		  	}
+		);
 	} else {
 		// if Object is not new, its attr are being updated, allow
 		response.success();
 	}
 });
 
-// Propagate FeedEntry changes to the Listing model if needed
-Parse.Cloud.beforeSave("FeedEntry", function (request, response) {
-	var _ = require("underscore");
+// Parse.User checks
 
-	// check if any changes to Listing are needed
-	if (!request.master && (request.object.dirty("users_seen") || request.object.dirty("users_liked"))) {
-		Parse.Cloud.useMasterKey();
-
-		if (request.object.dirty("users_seen")) {
-			request.object.get("listing").increment("num_seen");
-		}
-
-		if (request.object.dirty("users_liked")) {
-			var diff = _.contains(request.object.get("users_liked"), request.user) ? 1 : -1;
-
-			var diff = _.chain(request.object.get("users_liked"))
-				.map(function(user) { return user.id })
-				.contains(request.user.id)
-				.value() ? 1 : -1;
-
-			request.object.get("listing").increment("num_likes", diff);
-		}
-
-		request.object.get("listing").save().then(
-			function(){response.success();},
-			function(){response.error();}
-		);
+// Only allow FB users
+Parse.Cloud.beforeSave(Parse.User, function (request, response) {
+	Parse.Cloud.useMasterKey();
+	
+	if (Parse.FacebookUtils.isLinked(request.object)) {
+		response.success(request.object);
 	} else {
-		response.success();
+		response.error("User signup rejected.");
 	}
 });
 
-// Make sure each user belongs to a group
+// Make sure each user belongs to a group, grab FB data
 Parse.Cloud.afterSave(Parse.User, function (request) {
 	Parse.Cloud.useMasterKey();
 
-	if (!request.object.has("group")) {
+	if (!request.object.existed()) {
 		var Group = Parse.Object.extend("Group");
 		var userGroup = new Group();
-		request.object.set("group", userGroup);
-	}
+		userGroup.addUnique("users", request.object);
+					
+		userGroup.save();
 
-	if (!request.object.has("email")) {
 		Parse.Cloud.httpRequest({
-			url: facebook_api + request.object.get("authData").facebook.id,
+			url: facebook_api + request.user.get("authData").facebook.id,
 			headers: {
 	    		'Content-Type': 'application/json;charset=utf-8'
 	  		},
 			params: {
 			    fields 			: 'picture.width(200).height(200),first_name,last_name,email,gender',
-			    access_token	: request.object.get("authData").facebook.access_token
+			    access_token	: request.user.get("authData").facebook.access_token
 		  	}
 		}).then(
 			function(httpResponse) {
-				request.object.set("first_name", httpResponse.data.first_name);
-				request.object.set("last_name", httpResponse.data.last_name);
-				request.object.set("email", httpResponse.data.email);
-				request.object.set("gender", httpResponse.data.gender);
-				request.object.set("profile_image_url", httpResponse.data.picture.data.url);
+				request.user.set("first_name", httpResponse.data.first_name);
+				request.user.set("last_name", httpResponse.data.last_name);
+				request.user.set("email", httpResponse.data.email);
+				request.user.set("gender", httpResponse.data.gender);
+				request.user.set("profile_image_url", httpResponse.data.picture.data.url);
 
-				request.object.save();
+				request.user.save();
+			}
+		);
+	}
+});
+
+// Group checks
+
+// Generate group name
+Parse.Cloud.beforeSave("Group", function (request, response) {
+	if (request.object.isNew()) {
+		var groupName = "";
+
+		// Generate random code, length 5
+		for (var i = 0; i < 5; i++) {
+			groupName += (Math.floor(Math.random() * 10)).toString();
+		}
+
+		request.object.set("group_name", groupName);
+
+		response.success();
+	} else {
+		response.success();
+	}
+});
+
+// Delete empty Groups
+Parse.Cloud.afterSave("Group", function (request) {
+	Parse.Cloud.useMasterKey();
+	
+	if (request.object.get("users").length == 0) {
+		request.object.destroy()
+		.then( function() {
+			console.log("Group " + groupName + " empty. Removed.");
+		});
+	}
+});
+
+// Delete Search, FeedEntries after deleting Group
+Parse.Cloud.afterDelete("Group", function (request) {
+	Parse.Cloud.useMasterKey();
+	
+	if (request.object.has("search")) {
+		request.object.get("search").destroy();
+	}
+
+	var FeedEntry = Parse.Object.extend("FeedEntry");
+	var feedEntryQuery = new Parse.Query(FeedEntry);
+	feedEntryQuery.equalTo("group", request.object);
+
+	feedEntryQuery.each(function (feedEntry) {
+		feedEntry.destroy();
+	});
+});
+
+// add a user to a group based on the invite code (= group_name)
+Parse.Cloud.define("joinGroup", function (request, response) {
+	// the request must come from a logged in user
+	if (request.user && request.user.authenticated()) {
+		Parse.Cloud.useMasterKey();
+
+		var Group = Parse.Object.extend("Group");
+		var newGroup;
+		var newGroupQuery = new Parse.Query(Group);
+		newGroupQuery.equalTo("group_name", request.params.code);
+
+		// check if user is trying to join an existing group
+		newGroupQuery.first()
+		.then( function (groupToJoin) {
+			if (groupToJoin) {
+				groupToJoin.addUnique("users", request.user);
+				newGroup = groupToJoin;
+
+				// remove from current Group
+				var currentGroupQuery = new Parse.Query(Group)
+				.equalTo("users", request.user)
+				.notEqualTo("group_name", request.params.code);
+
+				return currentGroupQuery.each( function (currentGroup) {
+					currentGroup.remove("users", request.user);
+					return currentGroup.save();
+				});
+			} else {
+				var error = new Parse.Promise();
+				error.reject("Error, group not found");
+				
+				return error;
+			}
+		})
+		.then( function () {
+			if (newGroup) {
+				return newGroup.save();	
+			}
+		})
+		.then(
+			function (currentGroup) {
+				response.success(currentGroup);
+			},
+			function (error) {
+				response.error(error);
+			}
+		);
+
+	} else {
+		response.error("Error, user must be authenticated");
+	}
+});
+
+// Search checks
+
+// Create Search Alerts for each new Search
+Parse.Cloud.afterSave("Search", function (request) {
+	Parse.Cloud.useMasterKey();
+
+	if (!request.object.existed()) {
+		var SearchAlert = Parse.Object.extend("SearchAlert");
+		var searchAlert = new SearchAlert({
+			search: request.object,
+			ACL: new Parse.ACL()
+		});
+
+		searchAlert.save();
+	}
+});
+
+// Delete SearchAlert after deleting Search
+Parse.Cloud.afterDelete("Search", function (request) {
+	Parse.Cloud.useMasterKey();
+
+	var SearchAlert = Parse.Object.extend("SearchAlert");
+	var searchAlertQuery = new Parse.Query(SearchAlert);
+	searchAlertQuery.equalTo("search", request.object);
+
+	searchAlertQuery.each( function (searchAlert) {
+		searchAlert.destroy();
+	})
+	.then( function() {
+		console.log("Removed search Alerts");
+	});
+});
+
+// SearchAlert checks
+
+// initialize with current FetchJob number
+Parse.Cloud.beforeSave("SearchAlert", function (request, response) {
+	Parse.Cloud.useMasterKey();
+
+	if (request.object.isNew()) {
+		var FetchJob = Parse.Object.extend("FetchJob");
+		var latestJobQuery = new Parse.Query(FetchJob);
+		latestJobQuery.descending("createdAt");
+
+		latestJobQuery.first()
+		.then( function (latestJob) {
+			var fifteenMinutesAgo = new Date();
+			fifteenMinutesAgo.setMinutes(fifteenMinutesAgo.getMinutes() - 15);
+
+			request.object.set({
+				lastBatchChecked: latestJob.get("batchNo"),
+				lastPushAt 		: fifteenMinutesAgo,
+				ACL 			: new Parse.ACL()
+			});
+			response.success();
+		});
+	} else {
+		response.success();
+	}
+});
+
+// FeedEntry checks
+
+// Propagate FeedEntry changes to the Listing model if needed, send notificaitons
+Parse.Cloud.beforeSave("FeedEntry", function (request, response) {
+	var _ = require("underscore");
+
+	// check if any changes to Listing are needed
+	if (request.user) {
+		request.object.get("group").fetch()
+		.then(function() {
+			Parse.Cloud.useMasterKey();
+
+			var listingNeedsUpdate = false;
+			var notificationMessage = "";
+			var notificaitonType;
+
+			// can't 'unsee' a listing, can only increment users_seen
+			if (request.object.dirty("users_seen")) {
+				listingNeedsUpdate = true;
+				request.object.get("listing").increment("num_seen");
+			}
+
+			// check if user liked (added to users_liked)
+			// or unliked (removed from users_liked)
+			if (request.object.dirty("users_liked")) {
+				listingNeedsUpdate = true;
+				var diff = _.chain(request.object.get("users_liked"))
+					.map(function(user) { return user.id })
+					.contains(request.user.id)
+					.value() ? 1 : -1;
+
+				request.object.get("listing").increment("num_likes", diff);
+
+				notificaitonType = HQNotificationTypes.HQNotificationTypeLike;
+				notificationMessage = request.user.get("first_name") + 
+					(diff > 0 ? " liked " : " unliked ") + "a property.";
+			}
+
+			if (request.object.dirty("availability")) {
+				notificaitonType = HQNotificationTypes.HQNotificationTypeAvailability;
+				notificationMessage = request.user.get("first_name") + 
+					" changed the availability on a property";
+			}
+
+			if (request.object.dirty("num_comments")) {
+				notificaitonType = HQNotificationTypes.HQNotificationTypeComment;
+				notificationMessage = request.user.get("first_name") + 
+					" commented on a property";
+			}
+			
+			var query = new Parse.Query(Parse.Installation);
+			console.log(request.object.get("group"));
+			query.containedIn('userId', request.object.get("group").get("users"));
+			query.notEqualTo('userId', request.user);
+
+			Parse.Push.send({
+			  where: query,
+			  data: {
+			  	alert: notificationMessage,
+			  	type: notificaitonType,
+			  	sound: "default",
+			  	value: {
+			  		name: request.user.get("first_name")
+			  	}
+			  }
+			})
+			.then( function() {
+				if (listingNeedsUpdate) {
+					return request.object.get("listing").save();
+				}
+			})
+			.then(
+				function(){response.success();},
+				function(){response.success();}
+			);
+		});
+	} else {
+		response.success();
+	}
+});
+
+// Delete Comments after deleting 
+Parse.Cloud.afterDelete("FeedEntry", function (request) {
+	Parse.Cloud.useMasterKey();
+
+	var Comment = Parse.Object.extend("Comment");
+	var commentQuery = new Parse.Query(Comment);
+	commentQuery.equalTo("feed_entry", request.object);
+
+	commentQuery.each( function (comment) {
+		comments.destroy();
+	});
+});
+
+// Comment checks
+
+// Increment comment count on the corresponding FeedEntry
+Parse.Cloud.afterSave("Comment", function(request) {
+	if (!request.object.existed()) {
+		var feedEntry = request.object.get("feed_entry");
+		feedEntry.increment("num_comments");
+		feedEntry.save();
+	}
+});
+
+// Limit comment length to 1200 characters
+Parse.Cloud.beforeSave("Comment", function(request, response) {
+	if (request.user && request.user.authenticated()) {
+		var content = request.object.get("comment");
+		content && request.object.set("comment", content.substr(0,1200));
+
+		response.success();
+	} else {
+		response.error("Must be logged in to comment.");
+	}
+});
+
+// Parse.Installation checks
+
+// Link each Installation to its User
+Parse.Cloud.beforeSave(Parse.Installation, function (request,response) {
+	Parse.Cloud.useMasterKey();
+
+	// If installation is saved on client side
+	if (request.user) {
+		request.object.set("userId", request.user);
+		response.success();
+	} else {
+		response.success();	
+	}
+});
+
+function buildListingQuery (searchParams) {
+	var _ = require('underscore');
+	var query = new Parse.Query(Listing);
+
+	if (searchParams.num_beds.length > 0) {
+		var beds = searchParams.num_beds;
+        _.contains(beds, 4) && beds.push(5,6,7,8,9,10);
+
+        query.containedIn("num_bedrooms", beds);
+	}
+
+	if (searchParams.areas.length > 0) {
+		query.containedIn("borough", searchParams.areas);
+	}
+
+	query.greaterThanOrEqualTo("price_per_month", searchParams.price_min);
+
+	if (searchParams.price_max < 6000) {
+		query.lessThanOrEqualTo("price_per_month", searchParams.price_max);
+	}
+
+	if (searchParams.with_photos) {
+		query.greaterThan("num_images",0);
+	}
+
+	return query;
+}
+
+var FeedEntry = Parse.Object.extend("FeedEntry", {
+    defaults: {
+      num_comments: 0,
+      availability: "1",
+      users_liked: [],
+      users_seen: []
+    }
+});
+
+// send push notifications between 8AM and 10PM
+function isInNotificationHours(date) {
+	return (date.getHours() > 7 && date.getHours() < 22);
+}
+
+// enforce a 30 min spacing between pushes
+function okToPush(searchAlert) {
+	var minutesBetweenPushes = 30;
+	var lastPushDate = new Date(searchAlert.get("lastPushAt").toJSON());
+	var diff = Math.abs(new Date() - lastPushDate);
+	var diffMinutes = Math.floor(diff/1000/60);
+
+	return (diffMinutes >= minutesBetweenPushes);
+}
+
+function sendNotifications (currentBatchNumber) {
+	var alertsSentPromise = new Parse.Promise();
+
+	// Only push at decent hours
+	if ( isInNotificationHours(new Date()) ) {
+		var SearchAlert = Parse.Object.extend("SearchAlert");
+		var searchAlertQuery = new Parse.Query(SearchAlert);
+		searchAlertQuery.include("search");
+
+		var alertsUpdatedPromises = [];
+
+		console.log("Fetching all SearchAlerts");
+		searchAlertQuery.each(
+			function (searchAlert) {
+				// keep at least 30 minutes between two consecutive pushes
+				if (okToPush(searchAlert)) {
+					var alertUpdatedPromise = new Parse.Promise();
+					alertsUpdatedPromises.push(alertUpdatedPromise);
+
+					// build the listings query for each search
+					var listingQuery = buildListingQuery(searchAlert.get("search").toJSON());
+
+					// query all properties added since last checked batch
+					listingQuery.greaterThan("batchNo", searchAlert.get("lastBatchChecked"));
+
+					var count_to_send;
+
+					// fetch the number of new listings matching search parameters
+					listingQuery.count()
+					.then(function (num_new_listings) {
+						count_to_send = num_new_listings;
+
+						if (num_new_listings > 0) {
+							// get the group that needs to receive the notification
+							var groupQuery = new Parse.Query("Group");
+							groupQuery.equalTo("search", searchAlert.get("search"));
+
+							return groupQuery.first()
+							.then(function (group) {
+								if (group) {
+									var pushQuery = new Parse.Query(Parse.Installation);
+									pushQuery.containedIn("userId", group.get("users"));
+
+									// Update the time of last Push
+									searchAlert.set("lastPushAt", new Date());
+									
+									return Parse.Push.send({
+									  where: pushQuery,
+									  data: {
+									  	alert: "Surprise! You got " + count_to_send + 
+									  		" new propert" + (count_to_send == 1 ? "y!" : "ies!"),
+									  	type: HQNotificationTypes.HQNotificationTypeNewProperty,
+									  	sound: "default",
+									  	value: {}
+									  }
+									});
+								}
+							});
+						}
+					})
+					.then(function () {
+						// save batchNumber in searchAlert
+						return searchAlert.save({
+							lastBatchChecked: currentBatchNumber,
+						});
+					})
+					.then(
+						function (updatedAlert) {
+							alertUpdatedPromise.resolve(updatedAlert);
+						},
+						function (error) {
+							console.log("Error updating SearchAlert " + error.message);
+							alertUpdatedPromise.reject(error);
+						}
+					);
+				}
+			}
+		)
+		.then(
+			function() {
+				console.log("Waiting for all SearchAlerts to be updated");
+
+				return Parse.Promise.when(alertsUpdatedPromises);
+			},
+			function (error) {
+				console.error("Error fetching SearchAlerts, message:" + error.message);
+			}
+		)
+		.then(
+			function() {
+				alertsSentPromise.resolve("Sent push notifications for all saved alerts");
+			},
+			function (error) {
+				alertsSentPromise.reject("Error sending push notifications, message: " + error.message);
 			}
 		);
 	} else {
-		request.object.save();
+		alertsSentPromise.resolve("Outside notification hours, skip push.");
 	}
+
+	return alertsSentPromise;
+}
+
+Parse.Cloud.define("createFeedEntriesForGroupCode", function (request, response) {
+	Parse.Cloud.useMasterKey();
+
+	var group_name = request.params.code;
+	var groupQuery = new Parse.Query("Group");
+	groupQuery.equalTo("group_name", group_name);
+	groupQuery.include("search");
+	var search, group;
+
+	groupQuery.first()
+	.done(function (g) {
+		group = g;
+
+		if (group && group.has("search")) {
+			var feedQuery = (new Parse.Query("FeedEntry"))
+				.equalTo("group", group)
+				.descending("createdAt")
+				.include("listing");
+
+			search = buildListingQuery(group.get('search').toJSON());
+			search.select([]).descending("updatedAt");
+
+			return feedQuery.first();
+		} else {
+			response.error("no such group/no query for this group");
+		}
+	})
+	.done(function (feedEntry) {
+		if (feedEntry) {
+			search.greaterThan("updatedAt", feedEntry.get("listing").updatedAt);
+		}
+
+		return search.find();
+	})
+	.done(function (listings) {
+		var newFeedEntries = [];
+
+		for (var i = 0; i < listings.length; i++) {
+			newFeedEntries.push(new FeedEntry({
+				listing: listings[i],
+				group: group
+			}));
+		}
+
+		return Parse.Object.saveAll(newFeedEntries);
+	})
+	.then(
+		function() { response.success(); },
+		function (error) { response.error(error); }
+	);
 });

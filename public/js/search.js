@@ -1,3 +1,34 @@
+Parse.View.prototype.close = function(){
+  this.remove();
+  this.unbind();
+  if (this.onClose){
+    this.onClose();
+  }
+}
+
+var QueryString = function () {
+  // This function is anonymous, is executed immediately and 
+  // the return value is assigned to QueryString!
+  var query_string = {};
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+      // If first entry with this name
+    if (typeof query_string[pair[0]] === "undefined") {
+      query_string[pair[0]] = pair[1];
+      // If second entry with this name
+    } else if (typeof query_string[pair[0]] === "string") {
+      var arr = [ query_string[pair[0]], pair[1] ];
+      query_string[pair[0]] = arr;
+      // If third or later entry with this name
+    } else {
+      query_string[pair[0]].push(pair[1]);
+    }
+  } 
+    return query_string;
+} ();
+
 var CHARING_CROSS = new google.maps.LatLng(51.507222,-0.1275);
 
 var dateDiff = function(s) {
@@ -9,15 +40,13 @@ var dateDiff = function(s) {
         dayDiff = hDiff / 24,
        weekDiff = dayDiff/7;
 
-  if (weekDiff >= 2) return Math.floor(weekDiff) + " weeks ago";
-  else if (weekDiff >=1) return "1 week ago";
-  else if (dayDiff >=2) return Math.floor(dayDiff) + " days ago";
-  else if (dayDiff >=1) return "1 day ago";
-  else if (hDiff >=2) return Math.floor(hDiff) + " hours ago";
-  else if (hDiff >=1) return "1 hour ago";
-  else if (minDiff >=2) return Math.floor(minDiff) +  " minutes ago";
-  else if (minDiff >=1) return "1 minute ago";
-  else if (secDiff >=2) return Math.floor(secDiff) + " seconds ago";
+  if (weekDiff >= 2) return Math.floor(weekDiff) + " weeks";
+  else if (weekDiff >=1) return "1 week";
+  else if (dayDiff >=2) return Math.floor(dayDiff) + " days";
+  else if (dayDiff >=1) return "1 day";
+  else if (hDiff >=2) return Math.floor(hDiff) + " hours";
+  else if (hDiff >=1) return "1 hour";
+  else if (minDiff >=30) return Math.floor(minDiff) +  " min";
   else return "moments ago";
 }
 
@@ -142,11 +171,11 @@ $(function() {
     // Entries are sorted by the listing published date/price
     comparator: function(entry) {
       //TODO: add more types of compare
-      return entry.get('listing').get('last_published_date');
+      return entry.get('last_published_date');
     }
   });
 
-  // FeedEntry Item View
+  // Listing Item View
   // --------------
 
   // The DOM element for the FeedEntry item..
@@ -155,30 +184,47 @@ $(function() {
     // Cache the template function for a single item.
     template: _.template($('#listing-template').html()),
 
+    events: {
+      "mouseenter .listing-container"   : "highlightOn",
+      "mouseleave .listing-container"   : "highlightOff",
+    },
+
     initialize: function() {
       var self = this;
       this.entry = new FeedEntry({listing: this.model});
 
       if (Parse.User.current()){
         var feedEntryQuery = new Parse.Query(FeedEntry);
-        feedEntryQuery.equalTo("group", Parse.User.current().get("group"));
+        feedEntryQuery.equalTo("group", state.get("group"));
         feedEntryQuery.equalTo("listing", this.model);
 
         feedEntryQuery.first().then(function (entry) {
           // re-render to show FeedEntry data
           if (entry) {
             self.entry = entry;
+            self.entry.bind("change", self.render, self);
             self.render();
           }
         });
       }
+      
+      this.renderMarker();
+    },
+
+    onClose: function(){
+      this.marker.setMap(null);
+      this.marker = null;
+
+      this.entry && this.entry.unbind("change", this.render);
     },
 
     // Re-render the contents of the FeedEntry item.
     render: function() {
       var listingJSON = this.model.toJSON();
+      listingJSON.nearest_station = this.model.get("nearest_station").toJSON();
+      listingJSON.nearest_station.distance = 
+        this.model.get("location").milesTo(this.model.get("nearest_station").get("location"));
       var feedEntryJSON = this.entry.toJSON();
-      console.log(listingJSON);
       
       for (var key in feedEntryJSON)
         listingJSON[key] = feedEntryJSON[key];
@@ -186,8 +232,59 @@ $(function() {
       $(this.el).html(this.template(listingJSON));
 
       return this;
-    }
+    },
 
+    renderMarker: function() {
+      var self = this;
+      var map = self.options.map;
+
+      var myLatLng = new google.maps.LatLng(this.model.get('location').latitude, this.model.get('location').longitude);
+      var bounds = map.getBounds();
+      
+      //if map bounds are on default center map at current marker
+      if (map.getCenter() == CHARING_CROSS) {
+        map.setCenter(myLatLng);
+      } 
+      //if markers present check if bounds need altering
+      else if (!bounds.contains(myLatLng)) {
+        bounds.extend(myLatLng);
+        map.fitBounds(bounds);
+      }
+
+      this.marker = new google.maps.Marker({
+        position: myLatLng,
+        map: map,
+        title: this.model.get("price_per_month").toString(),
+      });
+
+      google.maps.event.addListener(this.marker, 'click', function() {
+        // highlight listing container
+        $('.highlighted-container').removeClass("highlighted-container");
+        $('#' + self.id + ' .listing-container').addClass("highlighted-container");
+
+        // scroll to listing container
+        $('.col-content').animate({
+          scrollTop: $('.col-content').scrollTop() + $('#search-container').height() - $('.navbar').height() + 
+          $('#' + self.id + ' .listing-container').position().top - $('#' + self.id + ' .listing-container').height()
+        }, 1000);
+      });
+    },
+
+    highlightOn: function() {
+      var map = this.options.map;
+
+      if (!map.getBounds().contains(this.marker.getPosition())) {
+        var bounds = map.getBounds();
+        bounds.extend(this.marker.getPosition());
+
+        map.fitBounds(bounds);
+      }
+      this.marker.setAnimation(google.maps.Animation.BOUNCE);
+    },
+
+    highlightOff: function() {
+      this.marker.setAnimation(null);
+    }
   });
 
   // Search Model
@@ -213,6 +310,8 @@ $(function() {
 
     template: _.template($('#search-template').html()),
 
+    transitLayerTemplate: _.template($("#map-buttons-template").html()),
+
     events: {
       "change #areas"           : "changeAreas",
       "change .num-beds-select" : "changeNumBeds",
@@ -225,13 +324,54 @@ $(function() {
     initialize: function() {
       // bind events
       _.bindAll(this, 'render', 'performSearch','initializeMap');
-      this.model.bind('change', this.render);
-      this.model.bind('change', this.performSearch);
+      
+      this.$el.html(this.template(this.model.toJSON()));
 
-      this.render();
+      // initialize controls
+      this.initializeControls();
+
       // intialize map
-      //this.initializeMap();
-      //google.maps.event.addListenerOnce(this.map, 'idle', this.performSearch);
+      this.initializeMap();
+      google.maps.event.addListenerOnce(this.map, 'idle', this.performSearch);
+      
+      this.model.bind('change', this.performSearch);
+      this.model.bind('change', this.render);
+
+      this.listingViews = [];
+    },
+
+    initializeControls: function() {
+      // initialize price slider
+      $( ".price-range-slider" ).slider({
+        range:true,
+        min: 0,
+        max: 6000,
+        step: 50,
+        values: [ this.model.get("price_min"), this.model.get("price_max") ],
+        slide: function( event, ui ) {
+          $( "#price-min" ).val(ui.values[0]);
+          $( "#price-max" ).val(ui.values[1]);
+        },
+        stop: function( event, ui ) {
+          // depending on which value changed, trigger event
+          if (ui.value == ui.values[0])
+            $( "#price-min" ).trigger("change");
+          else
+            $( "#price-max" ).trigger("change");
+        }
+      });
+
+
+      // initialize area tag input
+      $('#areas').tagsinput({
+        freeInput: false, //only allow typeahead values
+        typeaheadjs: {
+          name: 'boroughnames',
+          displayKey: 'name',
+          valueKey: 'name',
+          source: boroughnames.ttAdapter()
+        }
+      });
     },
 
     initializeMap: function() {
@@ -287,7 +427,7 @@ $(function() {
 
       map.data.addListener('addfeature', function(event) {
         var areas = self.model.get("areas");
-        event.feature.setProperty('isSelected', _.contains(areas,event.feature.getProperty("name")));
+        event.feature.setProperty('isSelected', _.contains(areas, event.feature.getProperty("name")));
       });
 
       // When the user hovers, tempt them to click by outlining the letters.
@@ -302,53 +442,32 @@ $(function() {
         map.data.revertStyle();
       });
 
+      $('#map-container').append(this.transitLayerTemplate());
+
       var transitLayer = new google.maps.TransitLayer();
       transitLayer.setMap(map);
 
       var control = document.getElementById('transit-wpr');
       map.controls[google.maps.ControlPosition.TOP_RIGHT].push(control);
 
-      /*google.maps.event.addDomListener(control, 'click', function() {
+      google.maps.event.addDomListener(control, 'click', function() {
         transitLayer.setMap(transitLayer.getMap() ? null : map);
-      });*/
+      });
     },
 
     render: function() {
-      this.$el.html(this.template(this.model.toJSON()));
-
-      // initialize price slider
-      $( ".price-range-slider" ).slider({
-        range:true,
-        min: 0,
-        max: 6000,
-        step: 50,
-        values: [ this.model.get("price_min"), this.model.get("price_max") ],
-        slide: function( event, ui ) {
-          $( "#price-min" ).val(ui.values[0]);
-          $( "#price-max" ).val(ui.values[1]);
-        },
-        stop: function( event, ui ) {
-          // depending on which value changed, trigger event
-          if (ui.value == ui.values[0])
-            $( "#price-min" ).trigger("change");
-          else
-            $( "#price-max" ).trigger("change");
-        }
-      });
-
-
-      // initialize area tag input
-      $('#areas').tagsinput({
-        freeInput: false, //only allow typeahead values
-        typeaheadjs: {
-          name: 'boroughnames',
-          displayKey: 'name',
-          valueKey: 'name',
-          source: boroughnames.ttAdapter()
-        }
-      });
-
       this.delegateEvents();
+    },
+
+    remove: function() {
+      this.$el.empty().off()
+      return this;
+    },
+
+    onClose: function() {
+      this.model.unbind('change', this.render);
+      this.model.unbind('change', this.performSearch);
+      this.clearResults();
     },
 
     changeAreas: function(e) {
@@ -393,13 +512,29 @@ $(function() {
     },
 
     performSearch: function() {
+      var self = this;
+      this.clearResults();
+      //if other search still running remove their callbacks
+      if (this.searchPromise)
+        this.searchPromise._resolvedCallbacks = [];
+
+      var dateLimit = new Date();
+      dateLimit.setDate(dateLimit.getDate() - 5);
+
       var Listing = Parse.Object.extend("Listing");
       var query = new Parse.Query(Listing);
       query.select(["details_url", "last_published_date", "outcode", "borough",
-                    "price_per_month", "image_urls"]);
+                    "price_per_month", "image_urls","location","nearest_station","num_likes","num_seen"])
+      .include("nearest_station")
+      .descending("last_published_date")
+      .greaterThanOrEqualTo("last_published_date", dateLimit);
 
       if (this.model.get("num_beds").length > 0) {
-        query.containedIn("num_bedrooms", this.model.get("num_beds"));
+        //clone this.mode.beds
+        var beds = this.model.get("num_beds").slice(0);
+        _.contains(beds, 4) && beds.push(5,6,7,8,9,10);
+
+        query.containedIn("num_bedrooms", beds);
       }
 
       if (this.model.get("areas").length > 0) {
@@ -419,28 +554,48 @@ $(function() {
       }
 
       if (this.model.get("with_photos")) {
-        query.notEqualTo("image_url","");
+        query.greaterThan("num_images",0);
       }
       
-      query.find().then(
-        function (results) {
-          for (var i = 0; i < results.length; i++) {
-            var view = new ListingView({
-              model: results[i],
-              id: results[i].id
-            });
-            this.$("#list-container").append(view.render().el);
-          }
-        },
-        function (error) {
-          console.log("Error fetching properties. Error message: " + error.message);
+      this.searchPromise = query.find();
+
+      this.searchPromise.done(function (results) {
+        self.clearResults();
+
+        for (var i = 0; i < results.length; i++) {
+          var view = new ListingView({
+            model: results[i],
+            id: results[i].id,
+            map: self.map
+          });
+          self.listingViews.push(view);
+          this.$("#list-container").append(view.render().el);
         }
-      );
+      });
+    },
+
+    clearResults: function() {
+      _.map(this.listingViews, function (view) {
+        view.close();
+      });
+
+      this.listingViews = [];
     },
 
     saveSearch: function() {
-      this.model.set({group: Parse.User.current().get("group")});
-      this.model.save();
+      // TODO: disable button
+      // TODO: hide button
+      if (Parse.User.current()) {
+        
+        // link new search to group
+        if (this.model.isNew()) {
+          state.get("group").save({
+            search: this.model
+          });
+        } else {
+          this.model.save();
+        }
+      }
     }
   });
 
@@ -449,6 +604,9 @@ $(function() {
 
   // The main view for the app
   var AppView = Parse.View.extend({
+
+    inviteModalTemplate: _.template($('#invite-modal-template').html()),
+
     // Instead of generating a new element, bind to the existing skeleton of
     // the App already present in the HTML.
     el: $("#app-container"),
@@ -462,6 +620,16 @@ $(function() {
 
     initialize: function() {
       _.bindAll(this, "logInFb", "logOut", "render");
+      if (QueryString.num_beds) {
+        var url_num_beds = _.map(QueryString.num_beds.split(','), function (n) { return parseInt(n) });
+        if (url_num_beds.length > 0)
+          state.set({ num_beds: url_num_beds });
+      }
+
+      if (QueryString.invite) {
+        state.set({ invite: QueryString.invite});
+      }
+
       this.render();
     },
 
@@ -474,7 +642,11 @@ $(function() {
           // fetch the FB user data
           Parse.User.current().fetch().then(
             function() {
-              self.searchView && delete self.searchView;
+              if (self.searchView) {
+                self.searchView.close();
+                delete this.searchView;
+              }
+
               self.render();
             }
           );
@@ -491,32 +663,102 @@ $(function() {
 
     logOut: function(e) {
       Parse.User.logOut();
-      this.searchView && delete this.searchView;
+      if (this.searchView) {
+        this.searchView.close();
+        delete this.searchView;
+      }
+
       this.render();
+    },
+
+    showInviteModal: function() {
+      var self = this;
+      
+      // Insert modal and load it
+      $('body').append(self.inviteModalTemplate({code: state.get("group").get("group_name")}));
+      $('#inviteModal').modal();
+      
+      // Since the modal is inserted after jQuery loads we need to re-bind
+      // the click events which close the modal (outside model, on 'x' sign)
+      $('html').bind("click", self.hideInviteModal);
+      $('button.close').bind("click", self.hideInviteModal);
+      $('.action-modal-dialog').bind("click", function(event){
+          event.stopPropagation();
+      });
+
+      // bind the login with facebook button
+      $('.btn-fb').bind("click", $.proxy(self.sendFbMessage, self));
+
+      return false;
+    },
+
+    hideInviteModal: function() {
+      // Unbind the click events
+      $('html').unbind("click");
+      $('button.close').unbind("click");
+      $('.action-modal-dialog').unbind("click");
+
+      // Remove modal and opaque backdrop
+      $('#inviteModal').modal('hide');
+      $('#inviteModal').remove();
+      $('.modal-backdrop').remove();
+    },
+
+    sendFbMessage: function() {
+      FB.ui({
+        app_id: 1570124209875630,
+        method: 'send', 
+        link: 'http://www.housequest.co.uk?invite=' 
+                + state.get("group").get("group_name")
+      });
     },
 
     render: function() {
       var self = this;
 
       if (Parse.User.current()) {
-        Parse.User.current().get("group").fetch(
-        ).then(
-          function(group) {
-            $(self.navEl).html(_.template($("#nav-main-template").html()));
+        var Group = Parse.Object.extend("Group");
+        var groupQuery = new Parse.Query(Group);
+        groupQuery.equalTo("users", Parse.User.current());
+        groupQuery.include("users");
+        groupQuery.include("search");
 
-            var searchQuery = new Parse.Query(Search);
-            searchQuery.equalTo("group", group);
+        groupQuery.first().then( function (group) {
+          state.set({ group: group });
 
-            return searchQuery.first();
-          }
-        ).then(
-          function (search) {
-            new SearchView({model: search ? search : new Search()});
-          }
-        );
+          // Show current user, and group members in navbar
+          var userNav = _.template($("#nav-main-template").html());
+
+          // Get the array of friend names and profile images
+          var friendsData = _.chain(state.get("group").get("users"))
+            .filter(function(u) {
+              return u.id != Parse.User.current().id
+            })
+            .map(function (u) { 
+              return {
+                first_name: u.get("first_name"),
+                profile_img: u.get("profile_image_url")
+              }
+            })
+            .value();
+
+          // display navbar
+          $(self.navEl).html(userNav({ users: friendsData }));
+          $('.user-invite').bind("click", $.proxy(self.showInviteModal, self));
+
+          // If it exists display group's search, default search otherwise
+          var search = group.has("search") ? 
+            group.get("search") : new Search({ num_beds: state.get("num_beds") });
+
+          self.searchView = new SearchView({
+            model: search
+          });
+        });
       } else {
         $(this.navEl).html(_.template($("#nav-login-template").html()));
-        this.searchView = new SearchView({model: new Search()});
+        this.searchView = new SearchView({
+          model: new Search({num_beds: state.get("num_beds")})
+        });
       }
 
       this.delegateEvents();
@@ -530,14 +772,15 @@ $(function() {
   //   },
   // });
   
-  // TODO: This is the transient application state, not persisted on Parse
-  // var AppState = Parse.Object.extend("AppState", {
-  //   defaults: {
-  //     TODO: SEARCH QUERY, default London
-  //   }
-  // });
+  // This is the transient application state, not persisted on Parse
+  var AppState = Parse.Object.extend("AppState", {
+    defaults: {
+      group: undefined,
+      num_beds: [0, 1, 2, 3, 4]
+    }
+  });
 
-  // var state = new AppState;
+  var state = new AppState;
 
   //new AppRouter;
   new AppView;
