@@ -805,7 +805,7 @@ Parse.Cloud.afterSave("Comment", function(request) {
 
 // Limit comment length to 1200 characters
 Parse.Cloud.beforeSave("Comment", function(request, response) {
-	if (request.user && request.user.authenticated()) {
+	if (request.user && request.user.authenticated() || request.master) {
 		var content = request.object.get("comment");
 		content && request.object.set("comment", content.substr(0,1200));
 
