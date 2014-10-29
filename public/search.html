@@ -169,8 +169,8 @@
 
         <div class="col-xs-12 col-sm-8 col-input">
           <div class="price-range-slider"></div>
-          <input type="text" readonly id="price-min" value="<%= price_min %>">
-          <input type="text" readonly id="price-max" value="<%= price_max %>">          
+          <input type="text" class="price-input" readonly id="price-min" value="<%= price_min %>">
+          <input type="text" class="price-input" readonly id="price-max" value="<%= price_max %>">          
         </div> <!-- .col-xs-8.col-input -->
       </div> <!-- .row.row-filter -->
 
@@ -290,20 +290,28 @@
             </div> <!-- .listing-info-transit -->
           </div> <!-- .listing-footer-item.listing-info -->
 
-          <div class="scrollArea scrollAreaEmpty scrollAreaOpen scrollAreaInitialized" style="height:0px;">
-            <div class="scrollAreaContents"></div>
+          <div class="scrollArea scrollAreaEmpty scrollAreaOpen scrollAreaInitialized">
+            <div id="comments-container" class="scrollAreaContents"></div>
           </div>
 
           <div class="listing-comment-composer">
             <div class="listing-comment-text">
-              <form class="listing-comment-form">
-                <input type="text" placeholder="Write a comment..." class="faded-text-field listing-comment-text-field">
-              </form>
+              <div class="listing-comment-form">
+                <input id="new-comment" type="text" placeholder="Write a comment..." class="faded-text-field listing-comment-text-field">
+              </div>
             </div> <!-- .listing-comment-text -->
           </div> <!-- .timeline-comment-composer --> 
         </div> <!-- .listing-footer -->
       </div> <!-- .listing-content -->
     </div>
+  </script>
+
+  <script type="text/template" id="comment-template">
+    <div class="listingComment">
+      <div class="listingCommentAvatar Image" style="background-image:url(<%= profile_image_url %>);"></div>
+      <span class="listingCommentFirstName"><%= first_name %></span>
+      <span class="listingCommentText"><%= _.escape(comment) %></span>
+    </div> <!-- .listingComment -->
   </script>
 
   <script type="text/template" id="invite-modal-template">

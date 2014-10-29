@@ -97,7 +97,7 @@ $(function() {
   var FeedEntry = Parse.Object.extend("FeedEntry", {
     defaults: {
       num_comments: 0,
-      availability: true,
+      availability: "1",
       users_liked: [],
       users_seen: []
     },
@@ -186,13 +186,18 @@ $(function() {
     // Cache the template function for a single item.
     template: _.template($('#listing-template').html()),
 
+    commentTemplate: _.template($('#comment-template').html()),
+
     events: {
       "mouseenter .listing-container"   : "highlightOn",
       "mouseleave .listing-container"   : "highlightOff",
+      "keypress #new-comment"           : "commentOnEnter"
     },
 
     initialize: function() {
       var self = this;
+      _.bindAll(this, 'saveComment');
+
       this.entry = new FeedEntry({listing: this.model});
 
       if (Parse.User.current()){
@@ -200,12 +205,25 @@ $(function() {
         feedEntryQuery.equalTo("group", state.get("group"));
         feedEntryQuery.equalTo("listing", this.model);
 
-        feedEntryQuery.first().then(function (entry) {
+        feedEntryQuery.first()
+        .then(function (entry) {
           // re-render to show FeedEntry data
           if (entry) {
             self.entry = entry;
             self.entry.bind("change", self.render, self);
             self.render();
+
+            var commentsQuery = new Parse.Query('Comment');
+            commentsQuery.equalTo("feed_entry", entry)
+            .include("user")
+            .ascending("createdAt");
+
+            return commentsQuery.find();
+          }
+        })
+        .then(function (comments) {
+          if (comments) {
+            self.renderComments(comments);  
           }
         });
       }
@@ -232,8 +250,23 @@ $(function() {
         listingJSON[key] = feedEntryJSON[key];
 
       $(this.el).html(this.template(listingJSON));
+      this.input = this.$('#new-comment');
 
       return this;
+    },
+
+    renderComments: function(comments) {
+      this.$('#comments-container').html('');
+
+      for(var i = 0; i < comments.length; i++) {
+        var user = Parse.User.current();
+
+        this.$('#comments-container').append(this.commentTemplate({
+          first_name  : comments[i].get("user").get("first_name"),
+          profile_image_url : comments[i].get("user").get("profile_image_url"),
+          comment     : comments[i].get("comment")
+        }));
+      }
     },
 
     renderMarker: function() {
@@ -286,6 +319,68 @@ $(function() {
 
     highlightOff: function() {
       this.marker.setAnimation(null);
+    },
+
+    // If you hit return in the comment input field, save new Comment
+    commentOnEnter: function(e) {
+      var self = this;
+
+      if (Parse.User.current()) {
+        if (e.keyCode != 13) return;
+
+        var Comment = Parse.Object.extend('Comment');
+        var comment = new Comment({
+          comment:    this.input.val().substr(0, 1200),
+          feed_entry: this.entry,
+          user:       Parse.User.current()
+        });
+
+        this.$('#comments-container').append(this.commentTemplate({
+          first_name  : Parse.User.current().get("first_name"),
+          profile_image_url : Parse.User.current().get("profile_image_url"),
+          comment     : this.input.val().substr(0, 1200)
+        }));
+
+        this.saveComment(comment);
+
+        this.input.val('');
+      } else {
+        //TODO
+      }
+    },
+
+    saveComment: function(comment) {
+      var self = this;
+
+      var savingFE = new Parse.Promise.as(this.entry);
+
+      // save Feed entry first if needed
+      if (this.entry.isNew()) {
+        savingFE = this.entry.save({group: state.get("group")});
+      }
+
+      
+      savingFE.then(function (feedEntry) {
+        self.entry =  feedEntry;
+        comment.set("feed_entry", feedEntry);
+        
+        return comment.save();
+      })
+      .then(function () {
+          var commentsQuery = new Parse.Query('Comment');
+          commentsQuery.equalTo("feed_entry", self.entry)
+          .include("user")
+          .ascending("createdAt");
+
+          return commentsQuery.find();
+      })
+      .then(function (comments) {
+        if (comments) {
+          self.renderComments(comments);  
+        }
+      },
+        function(error) {console.log(error);}
+      );
     }
   });
 
@@ -474,7 +569,6 @@ $(function() {
       }));
 
       $('button.btn-save-search').bind("click", $.proxy(self.saveSearch, self));
-      console.log("muiana");
     },
 
     remove: function() {
@@ -607,6 +701,7 @@ $(function() {
 
         // if there are more results than the ones displayed add show more button
         if (self.count > (self.resultsPage * RESULTS_PER_PAGE + results.length)) {
+          //TODO
           this.$("#list-container").append($('#list-placeholder'));
         }
       });
@@ -661,6 +756,85 @@ $(function() {
 
   // The Application
   // ---------------
+
+  // var noUserView = Parse.View.extend({
+  //   loginModalTemplate: _.template($('#login-modal-template').html()),
+
+  //   events: {
+  //     "click .login-fb": "showLoginModal",
+  //     "click .btn-fb": "loginFb"
+  //   },
+
+  //   el: ".button-container",
+    
+  //   initialize: function() {
+  //     _.bindAll(this, "showLoginModal", "loginFb", "render");
+  //     this.render();
+
+  //     if (QueryString.invite) {
+  //       this.showLoginModal("to join group");
+  //     }
+  //   },
+
+  //   showLoginModal: function(e) {
+  //     var self = this;
+  //     var reason = (typeof e === "string") ? e : "";
+
+  //     // Insert modal and load it
+  //     $('body').append(self.loginModalTemplate({loginReason: reason}));
+  //     $('#loginModal').modal();
+        
+  //     // Since the modal is inserted after jQuery loads we need to re-bind
+  //     // the click events which close the modal (outside model, on 'x' sign)
+  //     $('html').bind("click", self.hideLoginModal);
+  //     $('button.close').bind("click", self.hideLoginModal);
+  //     $('.action-modal-dialog').bind("click", function(event){
+  //         event.stopPropagation();
+  //     });
+
+  //     // bind the login with facebook button
+  //     $('.btn-fb').bind("click", $.proxy(self.loginFb, self));
+
+  //     return false;
+  //   },
+
+  //   hideLoginModal: function() {
+  //     // Unbind the click events
+  //     $('html').unbind("click");
+  //     $('button.close').unbind("click");
+  //     $('.action-modal-dialog').unbind("click");
+
+  //     // Remove modal and opaque backdrop
+  //     $('#loginModal').modal('hide');
+  //     $('#loginModal').remove();
+  //     $('.modal-backdrop').remove();
+  //   },
+
+  //   loginFb: function() {
+  //     var self = this;
+  //     self.hideLoginModal();
+
+  //     //Ask for default permissions
+  //     Parse.FacebookUtils.logIn('public_profile,email,user_friends', {
+  //       success: function(user) {
+  //         // fetch the FB user data
+  //         Parse.User.current().fetch().then(
+  //           function() {
+  //             new userView();
+  //             self.undelegateEvents();
+  //             delete self;
+  //           }
+  //         );
+  //       }
+  //     });
+  //   },
+
+  //   render: function() {
+  //     var self = this;
+  //     this.$el.html(_.template($("#login-template").html()));
+  //     this.delegateEvents();
+  //   }
+  // });
 
   // The main view for the app
   var AppView = Parse.View.extend({
