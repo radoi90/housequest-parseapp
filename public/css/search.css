@@ -120,6 +120,10 @@ html {
   background-color: #34495E;
   background: #34495E;
 }
+.price-input {
+  border: 0;
+  width: 70px;
+}
 
 /* Map */
 #map-container>#transit-wpr {
@@ -242,7 +246,7 @@ html {
   position: relative;
 }
 .listing-comment-composer {
-  padding: 2px 10px;
+  padding: 0 10px 10px 10px;
   margin-bottom: 0;
 }
 .listing-footer-row {
@@ -301,7 +305,6 @@ html {
 }
 input[type=text] {
   -webkit-appearance: none;
-  border: none;
 }
 input[type=text] {
   outline: 0;
