@@ -188,11 +188,44 @@
         </div> <!-- .col-xs-8.col-input -->
       </div> <!-- .row.row-filter -->
 
-      <div class="row row-filter centered">
+      <div class="row row-filter">
         <div id="stats-row">
         </div>
       </div> <!-- .row.row-filter -->
     </div> <!-- .container-fluid -->   
+  </script>
+
+  <script type="text/template" id="stats-template">
+    <div class="col-xs-12 col-sm-9 stats-results">
+    <% if (count == 0) { %>
+      <span class="stats-result result-total">No results</span>
+    <% } else if (showingFirst < count) { %>
+      <span class="stats-result result-total">Showing first <%= showingFirst %> results</span>
+    <% } else { %>
+      <span class="stats-result result-total"><%= count %> results</span>
+    <% } %>
+
+    <span class="stats-divider"> &#149; </span>
+
+    <% if (expected == 0) { %>
+      <span class="stats-result result-total">Try expanding your search</span>  
+    <% } else if (expected <= 1) { %>
+      <span class="stats-result result-total">
+        Expect a new property every <%= Math.floor(1/expected) %> days
+      </span>
+    <% } else { %>
+      <span class="stats-result result-total">Expect <%= Math.floor(expected) %> new properties a day</span>
+    <% } %>
+    </div>
+
+    <div class="col-xs-12 col-sm-3 stats-button centered">
+    <% if (isNew) { %>
+      <button type="button" class="btn btn-default btn-save-search"><i class="fa fa-bell-o"> Turn on alerts</i></button>
+    <% } else if (hasChanged) { %>
+      <button type="button" class="btn btn-default btn-save-search"> Save changes </i></button>
+    <% } %>
+    </div>
+    
   </script>
   
   <script type="text/template" id="listing-template">
@@ -323,12 +356,6 @@
         </div>  <!-- .modal-content -->
       </div>  <!-- .modal-dialog -->
     </div> <!-- .modal -->
-  </script>
-
-  <script type="text/template" id="stats-template">
-    <span class="stats-result result-total">Showing first 100 resutls</span>
-    <span class="stats-result result-expected">Expect 2 new listings a day</span>
-    <button type="button" class="btn btn-default btn-save">Save changes</button>
   </script>
 
   <div id="list-placeholder">

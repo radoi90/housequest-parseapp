@@ -29,7 +29,9 @@ var QueryString = function () {
     return query_string;
 } ();
 
+// constants
 var CHARING_CROSS = new google.maps.LatLng(51.507222,-0.1275);
+var RESULTS_PER_PAGE = 30;
 
 var dateDiff = function(s) {
   var date = new Date (s);
@@ -319,18 +321,20 @@ $(function() {
       "change .num-beds-select" : "changeNumBeds",
       "change #price-min"       : "changePriceMin",
       "change #price-max"       : "changePriceMax",
-      "change #with-photos"     : "changeWithPhotos",
-      "click .btn-save"         : "saveSearch"
+      "change #with-photos"     : "changeWithPhotos"
     },
 
     initialize: function() {
       // bind events
-      _.bindAll(this, 'render', 'performSearch','initializeMap');
+      _.bindAll(this, 'render', 'performSearch','initializeMap','saveSearch');
       
       this.$el.html(this.template(this.model.toJSON()));
 
       // initialize controls
       this.initializeControls();
+
+      // initially get first result page
+      this.resultsPage = 0;
 
       // intialize map
       this.initializeMap();
@@ -458,7 +462,19 @@ $(function() {
     },
 
     render: function() {
+      var self = this;
       this.delegateEvents();
+
+      this.$('#stats-row').html(this.statsTemplate({
+        showingFirst: Math.min(this.count, (this.resultsPage + 1) * RESULTS_PER_PAGE),
+        count:      this.count,
+        expected:   this.count / 5,
+        isNew:      this.model.isNew(),
+        hasChanged:    this.model.dirty()
+      }));
+
+      $('button.btn-save-search').bind("click", $.proxy(self.saveSearch, self));
+      console.log("muiana");
     },
 
     remove: function() {
@@ -515,9 +531,11 @@ $(function() {
 
     performSearch: function() {
       var self = this;
+
       this.clearResults();
-      this.removeSpinner();
       
+      // remove any old spinners and add a fresh one
+      this.removeSpinner();
       this.insertSpinner();
 
       //if other search still running remove their callbacks
@@ -532,6 +550,7 @@ $(function() {
       query.select(["details_url", "last_published_date", "outcode", "borough",
                     "price_per_month", "image_urls","location","nearest_station","num_likes","num_seen"])
       .include("nearest_station")
+      .skip(this.resultsPage * RESULTS_PER_PAGE)
       .descending("last_published_date")
       .greaterThanOrEqualTo("last_published_date", dateLimit);
 
@@ -563,7 +582,14 @@ $(function() {
         query.greaterThan("num_images",0);
       }
       
-      this.searchPromise = query.find();
+      this.searchPromise = query.count()
+      .then(function (count) {
+        self.count = count;
+        self.render();
+        
+        query.limit(30);
+        return query.find();
+      });
 
       this.searchPromise.done(function (results) {
         self.clearResults();
@@ -578,6 +604,11 @@ $(function() {
           self.listingViews.push(view);
           this.$("#list-container").append(view.render().el);
         }
+
+        // if there are more results than the ones displayed add show more button
+        if (self.count > (self.resultsPage * RESULTS_PER_PAGE + results.length)) {
+          this.$("#list-container").append($('#list-placeholder'));
+        }
       });
     },
 
@@ -590,14 +621,19 @@ $(function() {
     },
 
     clearResults: function() {
-      _.map(this.listingViews, function (view) {
-        view.close();
-      });
+      // clear results if search parameters changed
+      if (this.resultsPage == 0) {
+        _.map(this.listingViews, function (view) {
+          view.close();
+        });
 
-      this.listingViews = [];
+        this.listingViews = [];
+      }
+      
     },
 
     saveSearch: function() {
+      var self = this;
       // TODO: disable button
       // TODO: hide button
       if (Parse.User.current()) {
@@ -606,12 +642,21 @@ $(function() {
         if (this.model.isNew()) {
           state.get("group").save({
             search: this.model
+          })
+          .then( function() {
+            self.render();
           });
         } else {
-          this.model.save();
+          this.model.save()
+          .then( function() {
+            self.render();
+          });
         }
+
       }
+
     }
+
   });
 
   // The Application
@@ -634,15 +679,14 @@ $(function() {
     },
 
     initialize: function() {
+      // bind model to UI events
       _.bindAll(this, "logInFb", "logOut", "render");
+
+      // if redirected from landing page prepopulate search fields
       if (QueryString.num_beds) {
         var url_num_beds = _.map(QueryString.num_beds.split(','), function (n) { return parseInt(n) });
         if (url_num_beds.length > 0)
           state.set({ num_beds: url_num_beds });
-      }
-
-      if (QueryString.invite) {
-        state.set({ invite: QueryString.invite});
       }
 
       this.render();

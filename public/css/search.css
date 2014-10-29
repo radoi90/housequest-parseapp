@@ -391,3 +391,9 @@ body>#list-placeholder {
     -webkit-transform: rotate(-360deg);
   }
 }
+.stats-results {
+  padding: 6px 0;
+}
+.stats-divider {
+  padding: 0 10px;
+}
