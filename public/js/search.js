@@ -318,6 +318,8 @@ $(function() {
 
     transitLayerTemplate: _.template($("#map-buttons-template").html()),
 
+    statsTemplate: _.template($('#stats-template').html()),
+
     events: {
       "change #areas"           : "changeAreas",
       "change .num-beds-select" : "changeNumBeds",
