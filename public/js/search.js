@@ -68,7 +68,7 @@ $(function() {
 
   // Initialize Parse with your Parse application javascript keys
   Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ",
-                   "lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
+                 "lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
 
   window.fbAsyncInit = function() {
     Parse.FacebookUtils.init({ // this line replaces FB.init({
@@ -312,6 +312,8 @@ $(function() {
 
     transitLayerTemplate: _.template($("#map-buttons-template").html()),
 
+    statsTemplate: _.template($('#stats-template').html()),
+
     events: {
       "change #areas"           : "changeAreas",
       "change .num-beds-select" : "changeNumBeds",
@@ -514,6 +516,10 @@ $(function() {
     performSearch: function() {
       var self = this;
       this.clearResults();
+      this.removeSpinner();
+      
+      this.insertSpinner();
+
       //if other search still running remove their callbacks
       if (this.searchPromise)
         this.searchPromise._resolvedCallbacks = [];
@@ -561,6 +567,7 @@ $(function() {
 
       this.searchPromise.done(function (results) {
         self.clearResults();
+        self.removeSpinner();
 
         for (var i = 0; i < results.length; i++) {
           var view = new ListingView({
@@ -572,6 +579,14 @@ $(function() {
           this.$("#list-container").append(view.render().el);
         }
       });
+    },
+
+    insertSpinner: function() {
+      $('#list-placeholder').clone().prependTo('#list-container');
+    },
+
+    removeSpinner: function() {
+      $('#list-container #list-placeholder').remove();
     },
 
     clearResults: function() {

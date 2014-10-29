@@ -4,6 +4,10 @@
             "applicationId": "5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ", 
             "masterKey": "xr49zW53FfdzV6jgTCgd8dwA4o26lPfE2hk49v3P"
         }, 
+        "HouseQuestDev": {
+            "applicationId": "xLa1kzoH7j1WfrstOdgYj275dAeFonMwBog7ngNK", 
+            "masterKey": "5S9AZJ4LsToNffy3Mh3dZ2IYHZhbH0zDTlg0Mik4"
+        }, 
         "_default": {
             "link": "HouseQuest"
         }

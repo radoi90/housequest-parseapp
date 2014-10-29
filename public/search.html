@@ -189,7 +189,8 @@
       </div> <!-- .row.row-filter -->
 
       <div class="row row-filter centered">
-        <button type="button" class="btn btn-default btn-save">Save changes</button>
+        <div id="stats-row">
+        </div>
       </div> <!-- .row.row-filter -->
     </div> <!-- .container-fluid -->   
   </script>
@@ -200,9 +201,9 @@
         <div class="listing-photos">
           <a class="photo photo-cover" href="<%= details_url %>" target="_blank">
             <div class="listing-img-container photo-cover centered">
-              <% _.each(image_urls, function(image_url) { %>
-              <img src="<%= image_url %>" class="img-responsive-height " alt="">
-              <% }); %>
+              <% if (image_urls.length) { %>
+                <img src="<%= image_urls[0] %>" class="img-responsive-height " alt="">
+              <% } %>
             </div> <!-- .listing-img-container.photo-cover.centered -->
           </a> <!-- .photo.photo-cover -->
 
@@ -323,6 +324,20 @@
       </div>  <!-- .modal-dialog -->
     </div> <!-- .modal -->
   </script>
+
+  <script type="text/template" id="stats-template">
+    <span class="stats-result result-total">Showing first 100 resutls</span>
+    <span class="stats-result result-expected">Expect 2 new listings a day</span>
+    <button type="button" class="btn btn-default btn-save">Save changes</button>
+  </script>
+
+  <div id="list-placeholder">
+    <div class="spinner">
+      <div class="cube1"></div>
+      <div class="cube2"></div>
+    </div>
+    <p class="centered">The computers are working, hold on.</p>
+  </div>
 
   <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
   <script src="//code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
