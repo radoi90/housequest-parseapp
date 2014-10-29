@@ -763,6 +763,85 @@ $(function() {
   // The Application
   // ---------------
 
+  // var noUserView = Parse.View.extend({
+  //   loginModalTemplate: _.template($('#login-modal-template').html()),
+
+  //   events: {
+  //     "click .login-fb": "showLoginModal",
+  //     "click .btn-fb": "loginFb"
+  //   },
+
+  //   el: ".button-container",
+    
+  //   initialize: function() {
+  //     _.bindAll(this, "showLoginModal", "loginFb", "render");
+  //     this.render();
+
+  //     if (QueryString.invite) {
+  //       this.showLoginModal("to join group");
+  //     }
+  //   },
+
+  //   showLoginModal: function(e) {
+  //     var self = this;
+  //     var reason = (typeof e === "string") ? e : "";
+
+  //     // Insert modal and load it
+  //     $('body').append(self.loginModalTemplate({loginReason: reason}));
+  //     $('#loginModal').modal();
+        
+  //     // Since the modal is inserted after jQuery loads we need to re-bind
+  //     // the click events which close the modal (outside model, on 'x' sign)
+  //     $('html').bind("click", self.hideLoginModal);
+  //     $('button.close').bind("click", self.hideLoginModal);
+  //     $('.action-modal-dialog').bind("click", function(event){
+  //         event.stopPropagation();
+  //     });
+
+  //     // bind the login with facebook button
+  //     $('.btn-fb').bind("click", $.proxy(self.loginFb, self));
+
+  //     return false;
+  //   },
+
+  //   hideLoginModal: function() {
+  //     // Unbind the click events
+  //     $('html').unbind("click");
+  //     $('button.close').unbind("click");
+  //     $('.action-modal-dialog').unbind("click");
+
+  //     // Remove modal and opaque backdrop
+  //     $('#loginModal').modal('hide');
+  //     $('#loginModal').remove();
+  //     $('.modal-backdrop').remove();
+  //   },
+
+  //   loginFb: function() {
+  //     var self = this;
+  //     self.hideLoginModal();
+
+  //     //Ask for default permissions
+  //     Parse.FacebookUtils.logIn('public_profile,email,user_friends', {
+  //       success: function(user) {
+  //         // fetch the FB user data
+  //         Parse.User.current().fetch().then(
+  //           function() {
+  //             new userView();
+  //             self.undelegateEvents();
+  //             delete self;
+  //           }
+  //         );
+  //       }
+  //     });
+  //   },
+
+  //   render: function() {
+  //     var self = this;
+  //     this.$el.html(_.template($("#login-template").html()));
+  //     this.delegateEvents();
+  //   }
+  // });
+
   // The main view for the app
   var AppView = Parse.View.extend({
 
