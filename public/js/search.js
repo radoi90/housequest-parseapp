@@ -103,7 +103,7 @@ $(function() {
   var FeedEntry = Parse.Object.extend("FeedEntry", {
     defaults: {
       num_comments: 0,
-      availability: true,
+      availability: "1",
       users_liked: [],
       users_seen: []
     },
@@ -192,13 +192,18 @@ $(function() {
     // Cache the template function for a single item.
     template: _.template($('#listing-template').html()),
 
+    commentTemplate: _.template($('#comment-template').html()),
+
     events: {
       "mouseenter .listing-container"   : "highlightOn",
       "mouseleave .listing-container"   : "highlightOff",
+      "keypress #new-comment"           : "commentOnEnter"
     },
 
     initialize: function() {
       var self = this;
+      _.bindAll(this, 'saveComment');
+
       this.entry = new FeedEntry({listing: this.model});
 
       if (Parse.User.current()){
@@ -206,12 +211,25 @@ $(function() {
         feedEntryQuery.equalTo("group", state.get("group"));
         feedEntryQuery.equalTo("listing", this.model);
 
-        feedEntryQuery.first().then(function (entry) {
+        feedEntryQuery.first()
+        .then(function (entry) {
           // re-render to show FeedEntry data
           if (entry) {
             self.entry = entry;
             self.entry.bind("change", self.render, self);
             self.render();
+
+            var commentsQuery = new Parse.Query('Comment');
+            commentsQuery.equalTo("feed_entry", entry)
+            .include("user")
+            .ascending("createdAt");
+
+            return commentsQuery.find();
+          }
+        })
+        .then(function (comments) {
+          if (comments) {
+            self.renderComments(comments);  
           }
         });
       }
@@ -238,8 +256,23 @@ $(function() {
         listingJSON[key] = feedEntryJSON[key];
 
       $(this.el).html(this.template(listingJSON));
+      this.input = this.$('#new-comment');
 
       return this;
+    },
+
+    renderComments: function(comments) {
+      this.$('#comments-container').html('');
+
+      for(var i = 0; i < comments.length; i++) {
+        var user = Parse.User.current();
+
+        this.$('#comments-container').append(this.commentTemplate({
+          first_name  : comments[i].get("user").get("first_name"),
+          profile_image_url : comments[i].get("user").get("profile_image_url"),
+          comment     : comments[i].get("comment")
+        }));
+      }
     },
 
     renderMarker: function() {
@@ -292,6 +325,68 @@ $(function() {
 
     highlightOff: function() {
       this.marker.setAnimation(null);
+    },
+
+    // If you hit return in the comment input field, save new Comment
+    commentOnEnter: function(e) {
+      var self = this;
+
+      if (Parse.User.current()) {
+        if (e.keyCode != 13) return;
+
+        var Comment = Parse.Object.extend('Comment');
+        var comment = new Comment({
+          comment:    this.input.val().substr(0, 1200),
+          feed_entry: this.entry,
+          user:       Parse.User.current()
+        });
+
+        this.$('#comments-container').append(this.commentTemplate({
+          first_name  : Parse.User.current().get("first_name"),
+          profile_image_url : Parse.User.current().get("profile_image_url"),
+          comment     : this.input.val().substr(0, 1200)
+        }));
+
+        this.saveComment(comment);
+
+        this.input.val('');
+      } else {
+        //TODO
+      }
+    },
+
+    saveComment: function(comment) {
+      var self = this;
+
+      var savingFE = new Parse.Promise.as(this.entry);
+
+      // save Feed entry first if needed
+      if (this.entry.isNew()) {
+        savingFE = this.entry.save({group: state.get("group")});
+      }
+
+      
+      savingFE.then(function (feedEntry) {
+        self.entry =  feedEntry;
+        comment.set("feed_entry", feedEntry);
+        
+        return comment.save();
+      })
+      .then(function () {
+          var commentsQuery = new Parse.Query('Comment');
+          commentsQuery.equalTo("feed_entry", self.entry)
+          .include("user")
+          .ascending("createdAt");
+
+          return commentsQuery.find();
+      })
+      .then(function (comments) {
+        if (comments) {
+          self.renderComments(comments);  
+        }
+      },
+        function(error) {console.log(error);}
+      );
     }
   });
 
@@ -480,7 +575,6 @@ $(function() {
       }));
 
       $('button.btn-save-search').bind("click", $.proxy(self.saveSearch, self));
-      console.log("muiana");
     },
 
     remove: function() {
@@ -613,6 +707,7 @@ $(function() {
 
         // if there are more results than the ones displayed add show more button
         if (self.count > (self.resultsPage * RESULTS_PER_PAGE + results.length)) {
+          //TODO
           this.$("#list-container").append($('#list-placeholder'));
         }
       });
