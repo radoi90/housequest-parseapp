@@ -201,9 +201,9 @@
         <div class="listing-photos">
           <a class="photo photo-cover" href="<%= details_url %>" target="_blank">
             <div class="listing-img-container photo-cover centered">
-              <% _.each(image_urls, function(image_url) { %>
-              <img src="<%= image_url %>" class="img-responsive-height " alt="">
-              <% }); %>
+              <% if (image_urls.length) { %>
+                <img src="<%= image_urls[0] %>" class="img-responsive-height " alt="">
+              <% } %>
             </div> <!-- .listing-img-container.photo-cover.centered -->
           </a> <!-- .photo.photo-cover -->
 
