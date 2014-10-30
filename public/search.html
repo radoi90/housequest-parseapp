@@ -233,10 +233,10 @@
     <div class="listing-container col-xs-12 col-md-6">
       <div class="listing-content">
         <div class="listing-photos">
-          <a class="photo photo-cover" href="<%= details_url %>" target="_blank">
+          <a class="photo photo-cover">
             <div class="listing-img-container photo-cover centered">
               <% if (image_urls.length) { %>
-                <img src="<%= image_urls[0] %>" class="img-responsive-height " alt="">
+                <img src="<%= image_urls[0] %>" class="img-responsive-height <%= availability == '1' ? '' : 'desaturate' %>">
               <% } %>
             </div> <!-- .listing-img-container.photo-cover.centered -->
           </a> <!-- .photo.photo-cover -->
@@ -247,8 +247,8 @@
 
           <div class="photo-overlay-bottom-left photo-overlay-label photo-overlay-listing-label">
             <div>
-              <sup class="h6 text-contrast">£</sup>
-              <span class="h3 price-amount"><%= price_per_month %></span>
+              <sup class="h6 text-contrast"><%= availability == '1' ? '£' : '' %></sup>
+              <span class="h3 price-amount"><%= availability == '1' ? price_per_month : 'Gone' %></span>
               <sup class="h6 text-contrast"></sup>
             </div>
           </div> <!-- .photo-overlay-bottom-left.photo-overlay-label.photo-overlay-listing-label -->
@@ -362,8 +362,8 @@
         <div class="action-modal-content height-full">
           <div class="action-modal-body height-full">
             <div class="row height-full">
-                <div class="col-modal col-modal-main col-xs-12 col-sm-7 height-full">
-                  <div class="modal-header">
+              <div class="col-modal col-modal-main col-xs-12 col-sm-7 height-full">
+                <div class="modal-header">
                   <h4 class="modal-title" id="inviteLabel">Invite friends</h4>
                   <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
@@ -380,27 +380,56 @@
                     <p>Or sign in online at:</p>
                     http://housequest.co.uk?invite=<%= code %>
                   </div>
-                    <a class="btn btn-flat btn-invite btn-mail" href="mailto:?subject=Awesome site and app for house hunting&body=Hey all,%0D%0A%0D%0AOn HouseQuest we can search for a place to rent together. Get the app at https://itunes.apple.com/us/app/housequest-london-property/id926421721?mt=8 and enter the code <%= code %> to join our group.%0D%0AOr login online at http://housequest.co.uk?invite=<%= code %>.">
-                      <i class="fa fa-envelope-o fa-lg"></i>Invite via email
-                    </a>
-                    <a class="btn btn-flat btn-invite btn-fb">
-                      <i class="fa fa-facebook-square fa-lg"></i>Invite via Messenger
-                    </a>
-                  </div>
+                  <a class="btn btn-flat btn-invite btn-mail" href="mailto:?subject=Awesome site and app for house hunting&body=Hey all,%0D%0A%0D%0AOn HouseQuest we can search for a place to rent together. Get the app at https://itunes.apple.com/us/app/housequest-london-property/id926421721?mt=8 and enter the code <%= code %> to join our group.%0D%0AOr login online at http://housequest.co.uk?invite=<%= code %>.">
+                    <i class="fa fa-envelope-o fa-lg"></i>Invite via email
+                  </a>
+                  <a class="btn btn-flat btn-invite btn-fb">
+                    <i class="fa fa-facebook-square fa-lg"></i>Invite via Messenger
+                  </a>
+                </div>
+              </div>
+
+              <div class="col-modal col-modal-side col-xs-12 col-sm-4 col-sm-offset-1 height-full">
+                <div class="col-modal-content">
+                  <h5>Notifications</h5>
+                  <p>Get pinged as soon as there's new stuff for you</p>
+                  <h5>Groups</h5>
+                  <p>No need to email or message links around anymore</p>
+                  <h5>Synced</h5>
+                  <p>Access your data from any of your devices</p>
+                  <h5>More</h5>
+                  <p>We'll keep building more stuff, stay tuned</p>
+                </div>
+              </div>
+            </div> <!-- .row -->
+          </div> <!-- .modal-body -->
+        </div>  <!-- .modal-content -->
+      </div>  <!-- .modal-dialog -->
+    </div> <!-- .modal -->
+  </script>
+
+  <script type="text/template" id="call-modal-template">
+    <div class="modal" id="callModal" tabindex="-1" role="dialog" aria-labelledby="callLabel" aria-hidden="true">
+      <div class="action-modal-dialog height-desktop-full">
+        <div class="action-modal-content height-full">
+          <div class="action-modal-body height-full">
+            <div class="row height-full">
+              <div class="col-modal col-modal-main col-xs-12 height-full">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="callLabel">Agency: <%= agent_name %></h4>
                 </div>
 
-                <div class="col-modal col-modal-side col-xs-12 col-sm-4 col-sm-offset-1 height-full">
-                  <div class="col-modal-content">
-                    <h5>Notifications</h5>
-                    <p>Get pinged as soon as there's new stuff for you</p>
-                    <h5>Groups</h5>
-                    <p>No need to email or message links around anymore</p>
-                    <h5>Synced</h5>
-                    <p>Access your data from any of your devices</p>
-                    <h5>More</h5>
-                    <p>We'll keep building more stuff, stay tuned</p>
-                  <div>
+                <div class="col-modal-content centered">
+                  <h2> <%= agent_phone %> </h2>
+                  <h6>Ref: <%= num_bedrooms %> beds, <%= price_per_month %> per month, <%= _.escape(displayable_address) %></h6>
+                  
+                  <h4 class="keep-fresh">Keep HouseQuest fresh, was the property available?</h4>
+              
+                  <button class="btn btn-default btn-availability available-yes">Yes</button>
+                  <button class="btn btn-default btn-availability available-no">No</button>
+                  <button class="btn btn-default btn-availability available-notsure">Not Sure</button>
                 </div>
+              </div>
             </div> <!-- .row -->
           </div> <!-- .modal-body -->
         </div>  <!-- .modal-content -->
