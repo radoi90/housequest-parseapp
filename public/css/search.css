@@ -141,9 +141,17 @@ html {
   border: 1px solid rgba(0,0,0,.1);
   border-width: 1px;
 }
+#list-container>div:nth-child(odd)>.listing-container{
+  float: left;
+  clear: left;
+}
+#list-container>div:nth-child(even)>.listing-container{
+  float: right;
+  clear: right;
+}
 .listing-container {
   min-width: 240px;
-  max-width: 512px;
+  max-width: 380px;
   padding: 12px 6.25px;
 }
 .highlighted-container {
