@@ -1057,13 +1057,14 @@ Parse.Cloud.define("logAvailabilityReport", function (request, response) {
 			var AvailabilityReport = Parse.Object.extend('AvailabilityReport');
 			var availabilityReport = new AvailabilityReport({
 				listing: listing,
-				availability: available
+				availability: availability,
+				ACL: new Parse.ACL()
 			});
 
 			return availabilityReport.save();
 		})
 		.then(
-			function() { response.success(); },
+			function() { response.success("logged report"); },
 			function() { response.error(); }
 		);
 	} else {
