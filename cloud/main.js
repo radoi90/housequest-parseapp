@@ -1047,6 +1047,33 @@ Parse.Cloud.define("calledProperty", function (request, response) {
 	}
 });
 
+Parse.Cloud.define("logAvailabilityReport", function (request, response) {
+	Parse.Cloud.useMasterKey();
+
+	if (request.params.listing_id) {
+		var listingQuery = new Parse.Query('Listing');
+
+		var availability = request.params.available;
+
+		listingQuery.get(request.params.listing_id)
+		.then(function (listing) {
+			var AvailabilityReport = Parse.Object.extend('AvailabilityReport');
+			var availabilityReport = new AvailabilityReport({
+				listing: listing,
+				availability: available
+			});
+
+			return availabilityReport.save();
+		})
+		.then(
+			function() { response.success(); },
+			function() { response.error(); }
+		);
+	} else {
+		response.error();
+	}
+});
+
 Parse.Cloud.define("createFeedEntriesForGroupCode", function (request, response) {
 	Parse.Cloud.useMasterKey();
 
