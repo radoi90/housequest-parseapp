@@ -68,15 +68,9 @@ $(function() {
 
   Parse.$ = jQuery;
 
-  // DEV
   // Initialize Parse with your Parse application javascript keys
-  Parse.initialize("xLa1kzoH7j1WfrstOdgYj275dAeFonMwBog7ngNK",
-                 "0wkQGPbLTA6GxW0o2eqDhAui2faUNWXWPExELxuL");
-
-  // PROD
-  // // Initialize Parse with your Parse application javascript keys
-  // Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ",
-  //                "lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
+  Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ",
+                 "lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
 
   window.fbAsyncInit = function() {
     Parse.FacebookUtils.init({ // this line replaces FB.init({
