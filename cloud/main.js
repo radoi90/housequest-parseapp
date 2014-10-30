@@ -704,6 +704,8 @@ Parse.Cloud.beforeSave("SearchAlert", function (request, response) {
 Parse.Cloud.beforeSave("FeedEntry", function (request, response) {
 	var _ = require("underscore");
 
+	var checkUniquePromise = new Parse.Promise();
+
 	// Only allow one feed entry per listing for a group
 	if (request.object.isNew()) {
 		var feedEntryQuery = new Parse.Query('FeedEntry')
@@ -714,84 +716,107 @@ Parse.Cloud.beforeSave("FeedEntry", function (request, response) {
 		.then( function(existingEntry) {
 			if (existingEntry) {
 				// cancel save, client side should re-fetch the entry and try again
+				checkUniquePromise.resolve(false);
 				response.error(existingEntry.id);
 			} else {
-				// check if any changes to Listing are needed
-				if (request.user) {
-					request.object.get("group").fetch()
-					.then(function() {
-						Parse.Cloud.useMasterKey();
+				checkUniquePromise.resolve(true);
+			}
+		});
+	} else {
+		checkUniquePromise.resolve(true);
+	}
 
-						var listingNeedsUpdate = false;
-						var notificationMessage = "";
-						var notificaitonType;
+	checkUniquePromise.then( function (executeCheck) {
+		if (executeCheck) {
+			// check if any changes to Listing are needed
+			if (request.user) {
+				request.object.get("group").fetch()
+				.then(function() {
+					Parse.Cloud.useMasterKey();
 
-						// can't 'unsee' a listing, can only increment users_seen
-						if (request.object.dirty("users_seen")) {
+					var listingNeedsUpdate = false;
+					var notificationMessage = "";
+					var notificaitonType;
+
+					// can't 'unsee' a listing, can only increment users_seen
+					if (request.object.dirty("users_seen")) {
+						var seen = _.chain(request.object.get("users_seen"))
+							.map(function(user) { return user.id })
+							.contains(request.user.id)
+							.value();
+
+						if (seen) {
 							listingNeedsUpdate = true;
 							request.object.get("listing").increment("num_seen");
+						} 
+					}
+
+					// check if user liked (added to users_liked)
+					// or unliked (removed from users_liked)
+					if (request.object.dirty("users_liked")) {
+						var diff = _.chain(request.object.get("users_liked"))
+							.map(function(user) { return user.id })
+							.contains(request.user.id)
+							.value() ? 1 : -1;
+						if (diff == -1 && request.object.isNew()) {
+							diff = 0;
 						}
 
-						// check if user liked (added to users_liked)
-						// or unliked (removed from users_liked)
-						if (request.object.dirty("users_liked")) {
+						if (diff) {
 							listingNeedsUpdate = true;
-							var diff = _.chain(request.object.get("users_liked"))
-								.map(function(user) { return user.id })
-								.contains(request.user.id)
-								.value() ? 1 : -1;
-
 							request.object.get("listing").increment("num_likes", diff);
 
 							notificaitonType = HQNotificationTypes.HQNotificationTypeLike;
 							notificationMessage = request.user.get("first_name") + 
 								(diff > 0 ? " liked " : " unliked ") + "a property.";
 						}
-
-						if (request.object.dirty("availability")) {
-							notificaitonType = HQNotificationTypes.HQNotificationTypeAvailability;
-							notificationMessage = request.user.get("first_name") + 
-								" changed the availability on a property";
-						}
-
-						if (request.object.dirty("num_comments")) {
-							notificaitonType = HQNotificationTypes.HQNotificationTypeComment;
-							notificationMessage = request.user.get("first_name") + 
-								" commented on a property";
-						}
 						
-						var query = new Parse.Query(Parse.Installation);
-						console.log(request.object.get("group"));
-						query.containedIn('userId', request.object.get("group").get("users"));
-						query.notEqualTo('userId', request.user);
+					}
 
-						Parse.Push.send({
-						  where: query,
-						  data: {
-						  	alert: notificationMessage,
-						  	type: notificaitonType,
-						  	sound: "default",
-						  	value: {
-						  		name: request.user.get("first_name")
-						  	}
-						  }
-						})
-						.then( function() {
-							if (listingNeedsUpdate) {
-								return request.object.get("listing").save();
-							}
-						})
-						.then(
-							function(){response.success();},
-							function(){response.success();}
-						);
-					});
-				} else {
-					response.success();
-				}
+					if (request.object.dirty("availability") && !request.object.isNew()) {
+						notificaitonType = HQNotificationTypes.HQNotificationTypeAvailability;
+						notificationMessage = request.user.get("first_name") + 
+							" changed the availability on a property";
+					}
+
+					if (request.object.dirty("num_comments") && request.object.get("num_comments") > 0) {
+						notificaitonType = HQNotificationTypes.HQNotificationTypeComment;
+						notificationMessage = request.user.get("first_name") + 
+							" commented on a property";
+					}
+					
+					var query = new Parse.Query(Parse.Installation);
+					console.log(request.object.get("group"));
+					query.containedIn('userId', request.object.get("group").get("users"));
+					query.notEqualTo('userId', request.user);
+
+					Parse.Push.send({
+					  where: query,
+					  data: {
+					  	alert: notificationMessage,
+					  	type: notificaitonType,
+					  	sound: "default",
+					  	value: {
+					  		name: request.user.get("first_name")
+					  	}
+					  }
+					})
+					.then( function() {
+						if (listingNeedsUpdate) {
+							return request.object.get("listing").save();
+						}
+					})
+					.then(
+						function(){response.success();},
+						function(){response.success();}
+					);
+				});
+			} else {
+				response.success();
 			}
-		});
-	}
+		} 
+	});
+	
 });
 
 // Delete Comments after deleting 

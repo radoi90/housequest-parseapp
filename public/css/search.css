@@ -122,7 +122,11 @@ html {
 }
 .price-input {
   border: 0;
-  width: 70px;
+  width: 30%;
+}
+.price-divider{
+  float: left;
+  width: 40%;
 }
 
 /* Map */

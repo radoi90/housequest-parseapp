@@ -105,7 +105,8 @@ $(function() {
       num_comments: 0,
       availability: "1",
       users_liked: [],
-      users_seen: []
+      users_seen: [],
+      shortlisted: false
     },
 
     seeDetails: function() {
@@ -130,6 +131,15 @@ $(function() {
     // Toggle the `like` state of this FeedEntry item.
     like: function() {
       if (Parse.User.current()) {
+        // shortlist first if needed
+        if (!this.get("shortlisted")) {
+          this.set("shortlisted", true);
+          this.set("shortlisted_by", Parse.User.current());
+        } else {
+          if (this.shortlistedByCurrentUser()) {
+            this.set("shortlisted", false);
+          }
+        }
         
         if (this.likedByCurrentUser()) {
           // unlike
@@ -139,7 +149,7 @@ $(function() {
           this.addUnique("users_liked", Parse.User.current());
         }
         
-        this.save();  
+        this.save({group: state.get("group")});  
       } else {
         //TODO: implement ask user to login
       }
@@ -152,6 +162,14 @@ $(function() {
                 .map(function (user) { return user.id })
                 .contains(Parse.User.current().id)
                 .value();
+      } else {
+        return false;
+      }
+    },
+
+    shortlistedByCurrentUser: function() {
+      if (Parse.User.current() && this.get("shortlisted")) {
+        return this.get("shortlisted_by").id == Parse.User.current().id;
       } else {
         return false;
       }
@@ -197,7 +215,8 @@ $(function() {
     events: {
       "mouseenter .listing-container"   : "highlightOn",
       "mouseleave .listing-container"   : "highlightOff",
-      "keypress #new-comment"           : "commentOnEnter"
+      "keypress #new-comment"           : "commentOnEnter",
+      "click .listing-action.action-shortlist" : "shortlist"
     },
 
     initialize: function() {
@@ -205,6 +224,10 @@ $(function() {
       _.bindAll(this, 'saveComment');
 
       this.entry = new FeedEntry({listing: this.model});
+      this.comments = [];
+      if (state.get("group")) {
+        this.entry.set("group", state.get("group"));
+      }
 
       if (Parse.User.current()){
         var feedEntryQuery = new Parse.Query(FeedEntry);
@@ -216,7 +239,6 @@ $(function() {
           // re-render to show FeedEntry data
           if (entry) {
             self.entry = entry;
-            self.entry.bind("change", self.render, self);
             self.render();
 
             var commentsQuery = new Parse.Query('Comment');
@@ -229,7 +251,8 @@ $(function() {
         })
         .then(function (comments) {
           if (comments) {
-            self.renderComments(comments);  
+            self.comments = comments;
+            self.render();
           }
         });
       }
@@ -246,11 +269,34 @@ $(function() {
 
     // Re-render the contents of the FeedEntry item.
     render: function() {
+      var self = this;
       var listingJSON = this.model.toJSON();
       listingJSON.nearest_station = this.model.get("nearest_station").toJSON();
       listingJSON.nearest_station.distance = 
         this.model.get("location").milesTo(this.model.get("nearest_station").get("location"));
+      
       var feedEntryJSON = this.entry.toJSON();
+      feedEntryJSON.shortlisted_by_current = this.entry.shortlistedByCurrentUser();
+      feedEntryJSON.liked_by_current = this.entry.likedByCurrentUser();
+
+      if (state.get("group") && this.entry.get("shortlisted")) {
+        var shortlisted_by_user = _.filter(state.get("group").get("users"), function(user) { 
+            return self.entry.get("shortlisted_by").id == user.id;
+          })[0];
+
+        feedEntryJSON.user_shortlisted_pic = shortlisted_by_user.get("profile_image_url");
+      }
+
+      feedEntryJSON.users_liked_pics = [];
+      if (state.get("group")) {
+        for (var i = 0; i < this.entry.get("users_liked").length; i++) {
+          var liked_by_user = _.filter(state.get("group").get("users"), function(user) { 
+            return ((self.entry.get("users_liked")[i].id == user.id) && (self.entry.get("shortlisted_by").id != user.id));
+          })[0];
+
+          liked_by_user && feedEntryJSON.users_liked_pics.push(liked_by_user.get("profile_image_url"));
+        }
+      }
       
       for (var key in feedEntryJSON)
         listingJSON[key] = feedEntryJSON[key];
@@ -258,19 +304,19 @@ $(function() {
       $(this.el).html(this.template(listingJSON));
       this.input = this.$('#new-comment');
 
+      this.renderComments();
+
       return this;
     },
 
     renderComments: function(comments) {
       this.$('#comments-container').html('');
 
-      for(var i = 0; i < comments.length; i++) {
-        var user = Parse.User.current();
-
+      for(var i = 0; i < this.comments.length; i++) {
         this.$('#comments-container').append(this.commentTemplate({
-          first_name  : comments[i].get("user").get("first_name"),
-          profile_image_url : comments[i].get("user").get("profile_image_url"),
-          comment     : comments[i].get("comment")
+          first_name  : this.comments[i].get("user").get("first_name"),
+          profile_image_url : this.comments[i].get("user").get("profile_image_url"),
+          comment     : this.comments[i].get("comment")
         }));
       }
     },
@@ -362,7 +408,7 @@ $(function() {
 
       // save Feed entry first if needed
       if (this.entry.isNew()) {
-        savingFE = this.entry.save({group: state.get("group")});
+        savingFE = this.entry.save();
       }
 
       
@@ -382,11 +428,19 @@ $(function() {
       })
       .then(function (comments) {
         if (comments) {
-          self.renderComments(comments);  
+          self.comments = comments;
+          self.render();
         }
       },
         function(error) {console.log(error);}
       );
+    },
+
+    shortlist: function() {
+      if (Parse.User.current()) {
+        this.entry.like();
+        this.render();
+      }
     }
   });
 
@@ -427,7 +481,7 @@ $(function() {
 
     initialize: function() {
       // bind events
-      _.bindAll(this, 'render', 'performSearch','initializeMap','saveSearch');
+      _.bindAll(this, 'render', 'performSearch','performNewSearch','initializeMap','saveSearch');
       
       this.$el.html(this.template(this.model.toJSON()));
 
@@ -439,9 +493,9 @@ $(function() {
 
       // intialize map
       this.initializeMap();
-      google.maps.event.addListenerOnce(this.map, 'idle', this.performSearch);
+      google.maps.event.addListenerOnce(this.map, 'idle', this.performNewSearch);
       
-      this.model.bind('change', this.performSearch);
+      this.model.bind('change', this.performNewSearch);
       this.model.bind('change', this.render);
 
       this.listingViews = [];
@@ -458,6 +512,9 @@ $(function() {
         slide: function( event, ui ) {
           $( "#price-min" ).val(ui.values[0]);
           $( "#price-max" ).val(ui.values[1]);
+
+          if (ui.values[1] == 6000)
+            $( "#price-max" ).val(ui.values[1] + "+");
         },
         stop: function( event, ui ) {
           // depending on which value changed, trigger event
@@ -629,13 +686,20 @@ $(function() {
       this.model.set({with_photos: e.target.checked});
     },
 
+    performNewSearch: function() {
+      this.resultsPage = 0;
+
+      this.performSearch();
+    },
+
     performSearch: function() {
       var self = this;
-
+      console.log(this.resultsPage);
       this.clearResults();
       
       // remove any old spinners and add a fresh one
       this.removeSpinner();
+      $("#list-container #load-more").remove();
       this.insertSpinner();
 
       //if other search still running remove their callbacks
@@ -694,6 +758,7 @@ $(function() {
       this.searchPromise.done(function (results) {
         self.clearResults();
         self.removeSpinner();
+        $("#list-container #load-more").remove();
 
         for (var i = 0; i < results.length; i++) {
           var view = new ListingView({
@@ -707,10 +772,15 @@ $(function() {
 
         // if there are more results than the ones displayed add show more button
         if (self.count > (self.resultsPage * RESULTS_PER_PAGE + results.length)) {
-          //TODO
-          this.$("#list-container").append($('#list-placeholder'));
+          this.$("#list-container").append($('#load-more').clone());
+          $('#load-more').bind("click", $.proxy(self.advancePage, self));
         }
       });
+    },
+
+    advancePage: function() {
+      this.resultsPage++;
+      this.performSearch();
     },
 
     insertSpinner: function() {
