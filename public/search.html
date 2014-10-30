@@ -253,12 +253,53 @@
             </div>
           </div> <!-- .photo-overlay-bottom-left.photo-overlay-label.photo-overlay-listing-label -->
 
+          <div class="photo-overlay-top-right photo-overlay-like photo-overlay-listing-likes">
+            <div class="likes-container list-unstyled list-inline">
+              <% for (var i = 0; i < users_liked_pics.length; i++) { %>
+                <div class="activity-thumbnail like-thumbnail">
+                  <img class="img-circle img-thumbnail img-overlay" height="28" width="28" src="<%= users_liked_pics[i] %>">
+                  <span class="icon-activity icon-like">
+                    <i class="fa fa-heart"></i>
+                  </span>
+                </div>
+              <% } %>
+
+              <% if (shortlisted) { %>
+                <div class="activity-thumbnail shortlist-thumbnail">
+                  <img class="img-circle img-thumbnail img-overlay" height="28" width="28" src="<%= user_shortlisted_pic %>">
+                  <span class="icon-activity icon-shortlist">
+                    <i class="fa fa-thumb-tack"></i>
+                  </span>
+                </div>
+              <% } %>
+            </div>
+          </div> <!-- .photo-overlay-bottom-left.photo-overlay-label.photo-overlay-listing-label -->
+
           <div class="target-next target-control block-link">
             <i class="icon icon-chevron-right icon-size-2 icon-white"></i>
           </div> <!-- .target-next.target-control -->
         </div> <!-- .listing-photos -->
 
         <div class="container-fluid listing-footer">
+          <div class="row listing-footer-row listing-actions">
+            <div class="col-xs-6 listing-action action-shortlist">
+              <% if (shortlisted) { %>
+                <% if (shortlisted_by_current) { %>
+                  <a><i class="fa fa-thumb-tack listing-action-icon highlighted"></i> Un-shortlist</a>
+                <% } else if (liked_by_current) { %>
+                  <a><i class="fa fa-heart listing-action-icon highlighted"></i> Unlike</a>
+                <% } else { %>
+                  <a><i class="fa fa-heart-o listing-action-icon  "></i> Like</a>
+                <% } %>
+              <% } else { %>
+                <a><i class="fa fa-thumb-tack fa-rotate-45 listing-action-icon"></i> Shortlist</a>
+              <% } %>
+            </div>
+            <div class="col-xs-6 listing-action action-call">
+              <a><i class="fa fa-phone listing-action-icon"></i> Call</a>
+            </div>
+          </div> <!-- .listing-footer-row.listing-actions -->
+
           <div class="row listing-footer-row listing-info">
             <div class="listing-footer-item listing-info-text">
               <span class="listing-info-location">
