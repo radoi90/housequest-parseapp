@@ -459,3 +459,38 @@ body>#list-placeholder {
 .listingCommentText {
   font-size: 85%;
 }
+.timelineCenter {
+  padding: 32px;
+  border-width: 0 1px 1px;
+  -webkit-border-radius: 0 0 3px 3px;
+  border-radius: 0 0 3px 3px;
+  width: 100%;
+  clear: both;
+  text-align: center;
+}
+body>#load-more {
+  display: none;
+}
+.button-large {
+  font-size: 1.6rem;
+  padding: 9px 12px;
+}
+.button-grey {
+  background-color: #f3f3f3;
+  background-image: -webkit-gradient(linear,left top,left bottom,from(#f3f3f3),to(#ddd));
+  background-image: -webkit-linear-gradient(top,#f3f3f3,#ddd);
+  background-image: -moz-linear-gradient(top,#f3f3f3,#ddd);
+  background-image: -o-linear-gradient(top,#f3f3f3,#ddd);
+  background-image: -ms-linear-gradient(top,#f3f3f3,#ddd);
+  background-image: linear-gradient(top,#f3f3f3,#ddd);
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,StartColorStr='#f3f3f3', EndColorStr='#dddddd');
+  background-position: 50% 50%;
+  text-shadow: 0 1px 0 rgba(255,255,255,.6);
+}
+.button-grey {
+  border: 1px solid #c6c6c6;
+}
+.button-grey:hover {
+  text-decoration: none;
+  cursor: pointer;
+}
