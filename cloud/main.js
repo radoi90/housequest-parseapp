@@ -153,6 +153,7 @@ function createListingObject(zooplaData) {
 	listing.set("source","Zoopla");
 	listing.set("num_likes", 0);
 	listing.set("num_seen", 0);
+	listing.set("num_calls",0);
 
 	//Only allow read access to Listing model
 	var listingACL = new Parse.ACL();
@@ -1021,6 +1022,55 @@ function sendNotifications (currentBatchNumber) {
 
 	return alertsSentPromise;
 }
+
+Parse.Cloud.define("calledProperty", function (request, response) {
+	Parse.Cloud.useMasterKey();
+
+	if (request.params.listing_id) {
+		var listingQuery = new Parse.Query('Listing');
+
+		listingQuery.get(request.params.listing_id)
+		.then(function (listing) {
+			listing.increment("num_calls");
+			
+			return listing.save();
+		})
+		.then(
+			function() { response.success(); },
+			function() { response.error(); }
+		);
+	} else {
+		response.error();
+	}
+});
+
+Parse.Cloud.define("logAvailabilityReport", function (request, response) {
+	Parse.Cloud.useMasterKey();
+
+	if (request.params.listing_id) {
+		var listingQuery = new Parse.Query('Listing');
+
+		var availability = request.params.available;
+
+		listingQuery.get(request.params.listing_id)
+		.then(function (listing) {
+			var AvailabilityReport = Parse.Object.extend('AvailabilityReport');
+			var availabilityReport = new AvailabilityReport({
+				listing: listing,
+				availability: availability,
+				ACL: new Parse.ACL()
+			});
+
+			return availabilityReport.save();
+		})
+		.then(
+			function() { response.success("logged report"); },
+			function() { response.error(); }
+		);
+	} else {
+		response.error();
+	}
+});
 
 Parse.Cloud.define("createFeedEntriesForGroupCode", function (request, response) {
 	Parse.Cloud.useMasterKey();

@@ -86,6 +86,11 @@ nav i {
   width: auto;
   height: 100%;
 }
+img.desaturate { 
+  -webkit-filter: grayscale(100%);
+  -moz-filter: grayscale(100%);
+  filter: grayscale(100%);
+}
 .icon-white, .text-contrast {
   color: #fff;
 }

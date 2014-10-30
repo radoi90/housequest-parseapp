@@ -167,6 +167,12 @@ $(function() {
       } else {
         return false;
       }
+    },
+
+    setAvailability: function(available) {
+      this.set("availability", available ? "1" : "0");
+
+      this.save({group: state.get("group")});
     }
   });
 
@@ -206,16 +212,19 @@ $(function() {
 
     commentTemplate: _.template($('#comment-template').html()),
 
+    callModalTemplate: _.template($('#call-modal-template').html()),
+
     events: {
       "mouseenter .listing-container"   : "highlightOn",
       "mouseleave .listing-container"   : "highlightOff",
       "keypress #new-comment"           : "commentOnEnter",
-      "click .listing-action.action-shortlist" : "shortlist"
+      "click .listing-action.action-shortlist" : "shortlist",
+      "click .listing-action.action-call" : "showCallModal",
     },
 
     initialize: function() {
       var self = this;
-      _.bindAll(this, 'saveComment');
+      _.bindAll(this, 'saveComment','showCallModal','hideCallModal');
 
       this.entry = new FeedEntry({listing: this.model});
       this.comments = [];
@@ -259,6 +268,7 @@ $(function() {
       this.marker = null;
 
       this.entry && this.entry.unbind("change", this.render);
+      this.undelegateEvents();
     },
 
     // Re-render the contents of the FeedEntry item.
@@ -360,6 +370,7 @@ $(function() {
 
         map.fitBounds(bounds);
       }
+      
       this.marker.setAnimation(google.maps.Animation.BOUNCE);
     },
 
@@ -435,6 +446,71 @@ $(function() {
         this.entry.like();
         this.render();
       }
+    },
+
+    showCallModal: function() {
+      var self = this;
+      
+      // Insert modal and load it
+      $('body').append(self.callModalTemplate(this.model.toJSON()));
+      $('#callModal').modal();
+
+      Parse.Cloud.run("calledProperty",{listing_id: this.model.id});
+      
+      // Since the modal is inserted after jQuery loads we need to re-bind
+      // the click events which close the modal (outside model, on 'x' sign)
+      $('button.available-notsure').bind("click", self.hideCallModal);
+
+      $('button.available-yes').bind("click", $.proxy(self.reportAvailable, self));
+      $('button.available-no').bind("click", $.proxy(self.reportNotAvailable, self));
+      
+      $('html').bind("click", function(event){
+          event.stopPropagation();
+      });
+
+      return false;
+    },
+
+    hideCallModal: function() {
+      // Unbind the click events
+      $('button.available-notsure').unbind("click");
+      $('button.available-yes').unbind("click");
+      $('button.available-no').unbind("click");
+      $('.action-modal-dialog').unbind("click");
+
+
+      // Remove modal and opaque backdrop
+      $('#callModal').modal('hide');
+      $('#callModal').remove();
+      $('.modal-backdrop').remove();
+    },
+
+    reportAvailable: function() {
+      if (Parse.User.current()) {
+        this.entry.setAvailability(true);  
+      } else {
+        Parse.Cloud.run("logAvailabilityReport", { 
+          listing_id: this.model.id,
+          available: true
+        });
+      }
+
+      this.hideCallModal();
+      this.render();
+    },
+
+    reportNotAvailable: function() {
+      if (Parse.User.current()) {
+        this.entry.setAvailability(false);  
+      } else {
+        Parse.Cloud.run("logAvailabilityReport", { 
+          listing_id: this.model.id,
+          available: false
+        });
+      }
+
+      this.hideCallModal();
+      this.render();
     }
   });
 
@@ -705,8 +781,9 @@ $(function() {
 
       var Listing = Parse.Object.extend("Listing");
       var query = new Parse.Query(Listing);
-      query.select(["details_url", "last_published_date", "outcode", "borough",
-                    "price_per_month", "image_urls","location","nearest_station","num_likes","num_seen"])
+      query.select(["agent_name","agent_phone","last_published_date", "outcode", "borough",
+                    "displayable_address","num_bedrooms","price_per_month", "image_urls",
+                    "location","nearest_station","num_likes","num_seen"])
       .include("nearest_station")
       .skip(this.resultsPage * RESULTS_PER_PAGE)
       .descending("last_published_date")
