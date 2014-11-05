@@ -1126,3 +1126,67 @@ Parse.Cloud.define("createFeedEntriesForGroupCode", function (request, response)
 		function (error) { response.error(error); }
 	);
 });
+
+Parse.Cloud.job("agentStats", function (request, status) {
+	var AgencyStats = Parse.Object.extend("AgencyStats");
+
+	var jobQuery = new Parse.Query('FetchJob');
+	jobQuery.descending('createdAt');
+	stats = {};
+
+	jobQuery.first()
+	.then(function (latestJob) {
+		var listingQuery = new Parse.Query('Listing');
+		
+		return listingQuery.each(function (listing) {
+			var agencyStats = stats[listing.get("agent_name")] || new AgencyStats({
+				name    : listing.get("agent_name"),
+				num_all : 0,
+				avg_all : 0,
+				num_0   : 0,
+				avg_0   : 0,
+				num_1   : 0,
+				avg_1   : 0,
+				num_2   : 0,
+				avg_2   : 0,
+				num_3   : 0,
+				avg_3   : 0,
+				num_4   : 0,
+				avg_4   : 0
+			});
+			
+			var PCM = listing.get("price_per_month");
+			var beds = (listing.get("num_bedrooms") < 4) ? listing.get("num_bedrooms") : 4;
+
+			agencyStats.set("avg_all", 
+				(agencyStats.get("avg_all") * agencyStats.get("num_all") + PCM) / 
+				(agencyStats.get("num_all") + 1));
+			agencyStats.set("num_all", agencyStats.get("num_all") + 1);
+
+			agencyStats.set("avg_" + beds,
+				(agencyStats.get("avg_" + beds) * agencyStats.get("num_" + beds) + PCM) /
+				(agencyStats.get("num_" + beds) + 1));
+			agencyStats.set("num_" + beds, agencyStats.get("num_" + beds) + 1);
+
+
+			stats[listing.get("agent_name")] = agencyStats;
+		});
+	})
+	.then(function(){
+		var allStats = [];
+
+		for (var agencyName in stats) {
+			allStats.push(stats[agencyName]);
+		}
+
+		return Parse.Object.saveAll(allStats);
+	})
+	.then(
+		function () {
+			status.success("done stats.");
+		},
+		function (error) {
+			status.error();
+		}
+	);
+});
