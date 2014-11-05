@@ -1,6 +1,6 @@
 @font-face {
     font-family: AvenirNext;
-    src: url(AvenirNextLTPro-Medium.otf);
+    src: url(fonts/AvenirNextLTPro-Medium.otf);
 }
 
 body {
@@ -168,6 +168,11 @@ body {
 	height: 45px;
 
 	float: left;
+}
+
+.appstore-badge>img {
+	width: 200px;
+	margin-bottom: 20px;
 }
 
 
