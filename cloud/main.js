@@ -1128,6 +1128,7 @@ Parse.Cloud.define("createFeedEntriesForGroupCode", function (request, response)
 });
 
 Parse.Cloud.job("agentStats", function (request, status) {
+	Parse.Cloud.useMasterKey();
 	var Agency = Parse.Object.extend("Agency");
 
 	var jobQuery = new Parse.Query('FetchJob');
