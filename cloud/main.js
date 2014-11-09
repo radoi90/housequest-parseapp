@@ -1,7 +1,4 @@
-// dev
-var zoopla_api_key = 'kwt27yfdcvd6ek4gq2bqy2z5',
-// prod
-//var zoopla_api_key = 'ws9n766jdafxqb5btb6ad7v8',
+var zoopla_api_key = 'ws9n766jdafxqb5btb6ad7v8',
 	zoopla_api_url = 'http://api.zoopla.co.uk/api/v1/property_listings.json';
 
 var facebook_api = 'https://graph.facebook.com/v2.1/';
@@ -1130,6 +1127,7 @@ Parse.Cloud.define("createFeedEntriesForGroupCode", function (request, response)
 Parse.Cloud.job("agentStats", function (request, status) {
 	Parse.Cloud.useMasterKey();
 	var Agency = Parse.Object.extend("Agency");
+	var allStats = [[],[],[]];
 
 	var jobQuery = new Parse.Query('FetchJob');
 	jobQuery.descending('createdAt');
@@ -1176,13 +1174,28 @@ Parse.Cloud.job("agentStats", function (request, status) {
 		});
 	})
 	.then(function(){
-		var allStats = [];
+		var count = 0;
 
 		for (var agencyName in stats) {
-			allStats.push(stats[agencyName]);
+			allStats[Math.min(Math.floor(count / 1000), 2)].push(stats[agencyName]);
+			count++;
 		}
 
-		return Parse.Object.saveAll(allStats);
+		console.log("saving 0 - 999");
+
+		return Parse.Object.saveAll(allStats[0]);
+	})
+	.then( function() {
+		console.log("saved 0 - 999");
+		console.log("saving 1000 - 1999");
+
+		return Parse.Object.saveAll(allStats[1]);	
+	})
+	.then( function() {
+		console.log("saved 1000 - 1999");
+		console.log("savin 2000 - last");
+		
+		return Parse.Object.saveAll(allStats[2]);	
 	})
 	.then(
 		function () {
