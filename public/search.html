@@ -8,11 +8,8 @@
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/cupertino/jquery-ui.css">
   <link rel="stylesheet" href="css/bootstrap-tagsinput.css">
-  <link rel="stylesheet" href="css/owl.carousel.css">
-
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/search.css">
-
 
   <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -238,8 +235,8 @@
         <div class="listing-photos">
           <a class="photo photo-cover">
             <div class="listing-img-container photo-cover centered">
-              <% for (var i = 0; i < image_urls.length; i++) { %>
-                <img data-src="<%= image_urls[i] %>" class="lazyOwl img-responsive-height <%= availability == '1' ? '' : 'desaturate' %>"/>
+              <% if (image_urls.length) { %>
+                <img src="<%= image_urls[0] %>" class="img-responsive-height <%= availability == '1' ? '' : 'desaturate' %>">
               <% } %>
             </div> <!-- .listing-img-container.photo-cover.centered -->
           </a> <!-- .photo.photo-cover -->
@@ -288,9 +285,9 @@
             <div class="col-xs-6 listing-action action-shortlist">
               <% if (shortlisted) { %>
                 <% if (shortlisted_by_current) { %>
-                  <a><i class="fa fa-thumb-tack listing-action-icon highlighted"></i> Shortlisted</a>
+                  <a><i class="fa fa-thumb-tack listing-action-icon highlighted"></i> Un-shortlist</a>
                 <% } else if (liked_by_current) { %>
-                  <a><i class="fa fa-heart listing-action-icon highlighted"></i> Liked</a>
+                  <a><i class="fa fa-heart listing-action-icon highlighted"></i> Unlike</a>
                 <% } else { %>
                   <a><i class="fa fa-heart-o listing-action-icon  "></i> Like</a>
                 <% } %>
@@ -462,7 +459,6 @@
   <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
   <script src="js/typeahead.bundle.min.js"></script>
   <script src="js/bootstrap-tagsinput.min.js"></script>
-  <script src="js/owl.carousel.min.js"></script>
   <script src="js/pace.min.js"></script>
 
   <script src="js/search.js"></script>

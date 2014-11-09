@@ -23,6 +23,7 @@ var QueryString = function () {
 
 $(function() {
 	Parse.$ = jQuery;
+
 	// Initialize Parse with your Parse application javascript keys
 	Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ",
 	               "lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");

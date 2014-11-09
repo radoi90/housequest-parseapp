@@ -86,9 +86,6 @@ nav i {
   width: auto;
   height: 100%;
 }
-.owl-item {
-  height: 100%;
-}
 img.desaturate { 
   -webkit-filter: grayscale(100%);
   -moz-filter: grayscale(100%);

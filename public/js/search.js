@@ -308,21 +308,6 @@ $(function() {
       $(this.el).html(this.template(listingJSON));
       this.input = this.$('#new-comment');
 
-      var owl = this.$(".listing-img-container");
-
-      owl.owlCarousel({
-        singleItem: true,
-        lazyLoad : true
-      });
-      
-      // Custom Navigation Events
-      this.$(".target-next").click(function(){
-        owl.trigger('owl.next');
-      });
-      this.$(".target-prev").click(function(){
-        owl.trigger('owl.prev');
-      });
-
       this.renderComments();
 
       return this;
@@ -638,7 +623,7 @@ $(function() {
 
       this.map = map;
 
-      map.data.loadGeoJson('data/London_Boroughs.json');
+      map.data.loadGeoJson('data/boroughGeo.json');
 
       map.data.setStyle(function(feature) {
         var strokeOpacity = 0;
@@ -779,6 +764,7 @@ $(function() {
 
     performSearch: function() {
       var self = this;
+      console.log(this.resultsPage);
       this.clearResults();
       
       // remove any old spinners and add a fresh one
