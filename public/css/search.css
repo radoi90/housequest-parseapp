@@ -154,7 +154,6 @@ html {
 }
 .listing-container {
   min-width: 240px;
-  max-width: 380px;
   padding: 12px 6.25px;
 }
 .highlighted-container {
