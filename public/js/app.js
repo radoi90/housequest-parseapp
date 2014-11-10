@@ -23,7 +23,6 @@ $( document ).ready(function() {
 	  }
 	});
 
-	
 	$('#email-form').submit(function(event) {
 		event.preventDefault();
 		submit();
