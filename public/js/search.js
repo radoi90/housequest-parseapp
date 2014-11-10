@@ -972,7 +972,7 @@ $(function() {
         self.count = count;
         self.render();
         
-        query.limit(30);
+        query.limit(RESULTS_PER_PAGE);
         return query.find();
       });
 
