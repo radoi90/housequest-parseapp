@@ -68,9 +68,15 @@ $(function() {
 
   Parse.$ = jQuery;
 
+  // DEV
   // Initialize Parse with your Parse application javascript keys
-  Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ",
-                 "lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
+  Parse.initialize("xLa1kzoH7j1WfrstOdgYj275dAeFonMwBog7ngNK",
+                 "0wkQGPbLTA6GxW0o2eqDhAui2faUNWXWPExELxuL");
+
+  // PROD
+  // // Initialize Parse with your Parse application javascript keys
+  // Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ",
+  //                "lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
 
   window.fbAsyncInit = function() {
     Parse.FacebookUtils.init({ // this line replaces FB.init({
@@ -307,6 +313,21 @@ $(function() {
 
       $(this.el).html(this.template(listingJSON));
       this.input = this.$('#new-comment');
+
+      var owl = this.$(".listing-img-container");
+
+      owl.owlCarousel({
+        singleItem: true,
+        lazyLoad : true
+      });
+      
+      // Custom Navigation Events
+      this.$(".target-next").click(function(){
+        owl.trigger('owl.next');
+      });
+      this.$(".target-prev").click(function(){
+        owl.trigger('owl.prev');
+      });
 
       this.renderComments();
 
@@ -623,7 +644,7 @@ $(function() {
 
       this.map = map;
 
-      map.data.loadGeoJson('data/boroughGeo.json');
+      map.data.loadGeoJson('data/London_Boroughs.json');
 
       map.data.setStyle(function(feature) {
         var strokeOpacity = 0;
@@ -764,7 +785,6 @@ $(function() {
 
     performSearch: function() {
       var self = this;
-      console.log(this.resultsPage);
       this.clearResults();
       
       // remove any old spinners and add a fresh one
