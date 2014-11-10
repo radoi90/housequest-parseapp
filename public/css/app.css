@@ -50,6 +50,10 @@ body {
 	max-width: 55px;
 }
 
+#availability {
+	margin-bottom: 40px;
+}
+
 .container {
 	padding-top: 50px;
 }
@@ -84,7 +88,7 @@ body {
 
 #sign-up-header {
 	margin-top:10px;
-	height: 100px;
+	height: 50px;
 	text-align: center;
 }
 
