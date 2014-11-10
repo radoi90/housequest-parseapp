@@ -777,7 +777,7 @@ $(function() {
 
       this.map = map;
 
-      map.data.loadGeoJson('data/London_Boroughs.json');
+      map.data.loadGeoJson('data/boroughGeo.json');
 
       map.data.setStyle(function(feature) {
         var strokeOpacity = 0;
