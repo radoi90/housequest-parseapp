@@ -940,7 +940,8 @@ $(function() {
       .include("nearest_station")
       .skip(this.resultsPage * RESULTS_PER_PAGE)
       .descending("last_published_date")
-      .greaterThanOrEqualTo("last_published_date", dateLimit);
+      .greaterThanOrEqualTo("last_published_date", dateLimit)
+      .greaterThan("num_images", 0);
 
       if (this.model.get("num_beds").length > 0) {
         //clone this.mode.beds
@@ -964,10 +965,6 @@ $(function() {
 
       if (this.model.get("price_max") < 6000) {
         query.lessThanOrEqualTo("price_per_month", this.model.get("price_max"));
-      }
-
-      if (this.model.get("with_photos")) {
-        query.greaterThan("num_images",0);
       }
       
       this.searchPromise = query.count()
