@@ -214,17 +214,21 @@ $(function() {
 
     callModalTemplate: _.template($('#call-modal-template').html()),
 
+    featureModalTemplate: _.template($('#feature-modal-template').html()),
+
     events: {
       "mouseenter .listing-container"   : "highlightOn",
       "mouseleave .listing-container"   : "highlightOff",
       "keypress #new-comment"           : "commentOnEnter",
       "click .listing-action.action-shortlist" : "shortlist",
       "click .listing-action.action-call" : "showCallModal",
+      "click .price-agency" : "trackAgencyFeeClicks",
+      "click .price-council" : "trackCouncilTaxClicks"
     },
 
     initialize: function() {
       var self = this;
-      _.bindAll(this, 'saveComment','showCallModal','hideCallModal');
+      _.bindAll(this, 'saveComment','showCallModal','hideCallModal','trackAgencyFeeClicks','trackCouncilTaxClicks');
 
       this.entry = new FeedEntry({listing: this.model});
       this.comments = [];
@@ -526,6 +530,63 @@ $(function() {
 
       this.hideCallModal();
       this.render();
+    },
+
+    trackAgencyFeeClicks: function(e) {
+      var details = {
+        feature: 'price-transparency',
+        category: 'agency-fees',
+        user: Parse.User.current() ? Parse.User.current().id : 'anonymous',
+        listing: this.model.id
+      };
+
+      Parse.Analytics.track('featureRequest', details);
+
+      this.showFeatureModal(e);
+    },
+
+    trackCouncilTaxClicks: function(e) {
+      var details = {
+        feature: 'price-transparency',
+        category: 'council-tax',
+        user: Parse.User.current() ? Parse.User.current().id : 'anonymous',
+        listing: this.model.id
+      };
+
+      Parse.Analytics.track('featureRequest', details);
+
+      this.showFeatureModal(e);
+    },
+
+    showFeatureModal: function(e) {
+      e.stopPropagation();
+      var self = this;
+      // Insert modal and load it
+      $('body').append(this.featureModalTemplate());
+      $('#featureModal').modal();
+
+      // Since the modal is inserted after jQuery loads we need to re-bind
+      // the click events which close the modal (outside model, on 'x' sign)
+      $('button.close').bind("click", self.hideFeatureModal);
+      $('html').bind("click", self.hideFeatureModal);
+      $('.action-modal-dialog').bind("click", function(event){
+          event.stopPropagation();
+      });
+
+      return false;
+    },
+
+    hideFeatureModal: function() {
+      console.log('hide');
+      // Unbind the click events
+      $('html').unbind("click");
+      $('button.close').unbind("click");
+      $('.action-modal-dialog').unbind("click");
+
+      // Remove modal and opaque backdrop
+      $('#featureModal').modal('hide');
+      $('#featureModal').remove();
+      $('.modal-backdrop').remove();
     }
   });
 
@@ -579,7 +640,7 @@ $(function() {
       // intialize map
       this.initializeMap();
       google.maps.event.addListenerOnce(this.map, 'idle', this.performNewSearch);
-      
+
       this.model.bind('change', this.performNewSearch);
       this.model.bind('change', this.render);
 
@@ -587,6 +648,78 @@ $(function() {
     },
 
     initializeControls: function() {
+      // initialize number of beds selector
+      $('.btn-number').click(function(e){
+          e.preventDefault();
+          
+          fieldName = $(this).attr('data-field');
+          type      = $(this).attr('data-type');
+          var input = $("input[name='"+fieldName+"']");
+          var currentVal = parseInt(input.val());
+          if (!isNaN(currentVal)) {
+              if(type == 'minus') {
+                  
+                  if(currentVal > input.attr('min')) {
+                      input.val(currentVal - 1).change();
+                  } 
+                  if(parseInt(input.val()) == input.attr('min')) {
+                      $(this).attr('disabled', true);
+                  }
+
+              } else if(type == 'plus') {
+
+                  if(currentVal < input.attr('max')) {
+                      input.val(currentVal + 1).change();
+                  }
+                  if(parseInt(input.val()) == input.attr('max')) {
+                      $(this).attr('disabled', true);
+                  }
+
+              }
+          } else {
+              input.val(0);
+          }
+      });
+      $('.input-number').focusin(function(){
+         $(this).data('oldValue', $(this).val());
+      });
+      $('.input-number').change(function() {
+          
+          minValue =  parseInt($(this).attr('min'));
+          maxValue =  parseInt($(this).attr('max'));
+          valueCurrent = parseInt($(this).val());
+          
+          name = $(this).attr('name');
+          if(valueCurrent >= minValue) {
+              $(".btn-number[data-type='minus'][data-field='"+name+"']").removeAttr('disabled')
+          } else {
+              alert('Sorry, the minimum value was reached');
+              $(this).val($(this).data('oldValue'));
+          }
+          if(valueCurrent <= maxValue) {
+              $(".btn-number[data-type='plus'][data-field='"+name+"']").removeAttr('disabled')
+          } else {
+              alert('Sorry, the maximum value was reached');
+              $(this).val($(this).data('oldValue'));
+          }
+          
+          
+      });
+      $(".input-number").keydown(function (e) {
+              // Allow: backspace, delete, tab, escape, enter and .
+              if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 190]) !== -1 ||
+                   // Allow: Ctrl+A
+                  (e.keyCode == 65 && e.ctrlKey === true) || 
+                   // Allow: home, end, left, right
+                  (e.keyCode >= 35 && e.keyCode <= 39)) {
+                       // let it happen, don't do anything
+                       return;
+              }
+              // Ensure that it is a number and stop the keypress
+              if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                  e.preventDefault();
+              }
+          });
       // initialize price slider
       $( ".price-range-slider" ).slider({
         range:true,
@@ -638,7 +771,7 @@ $(function() {
 
       this.map = map;
 
-      map.data.loadGeoJson('data/London_Boroughs.json');
+      map.data.loadGeoJson('data/boroughGeo.json');
 
       map.data.setStyle(function(feature) {
         var strokeOpacity = 0;
@@ -754,8 +887,8 @@ $(function() {
     changeNumBeds: function(e) {
       var beds = this.model.get("num_beds");
       var value = parseInt(e.target.value);
-
-      beds = e.target.checked ? _.union(beds,[value]) : _.difference(beds,[value]);
+      
+      beds = value == 1 ? [value,0] : [value];
       this.model.set({num_beds: beds});
     },
 
@@ -801,7 +934,8 @@ $(function() {
       .include("nearest_station")
       .skip(this.resultsPage * RESULTS_PER_PAGE)
       .descending("last_published_date")
-      .greaterThanOrEqualTo("last_published_date", dateLimit);
+      .greaterThanOrEqualTo("last_published_date", dateLimit)
+      .greaterThan("num_images", 0);
 
       if (this.model.get("num_beds").length > 0) {
         //clone this.mode.beds
@@ -813,12 +947,6 @@ $(function() {
 
       if (this.model.get("areas").length > 0) {
         query.containedIn("borough", this.model.get("areas"));
-      } else {
-        var SW = this.map.getBounds().getSouthWest();
-            SW = new Parse.GeoPoint(SW.lat(), SW.lng());
-        var NE = this.map.getBounds().getNorthEast();
-            NE = new Parse.GeoPoint(NE.lat(), NE.lng());
-        query.withinGeoBox("location", SW, NE)
       }
 
       query.greaterThanOrEqualTo("price_per_month", this.model.get("price_min"));
@@ -826,17 +954,13 @@ $(function() {
       if (this.model.get("price_max") < 6000) {
         query.lessThanOrEqualTo("price_per_month", this.model.get("price_max"));
       }
-
-      if (this.model.get("with_photos")) {
-        query.greaterThan("num_images",0);
-      }
       
       this.searchPromise = query.count()
       .then(function (count) {
         self.count = count;
         self.render();
         
-        query.limit(30);
+        query.limit(RESULTS_PER_PAGE);
         return query.find();
       });
 

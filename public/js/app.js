@@ -5,6 +5,21 @@ $( document ).ready(function() {
   		interval: 3500
 	});
 
+	var Email = Parse.Object.extend("Email");
+	var query = new Parse.Query(Email);
+	query.count({
+	  success: function(count) {
+	    // The count request succeeded. Show the count
+		var string = "Join " + (603 + count) + " others and get early access";
+		$("#join-text").text(string);
+	  },
+	  error: function(error) {
+	    // The request failed
+	    alert(error);
+	  }
+	});
+
+	
 	$('#email-form').submit(function(event) {
 		event.preventDefault();
 		submit();
