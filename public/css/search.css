@@ -250,9 +250,18 @@ html {
   color: #fff;
 }
 .photo-overlay-listing-label {
-  bottom: 30px;
+  width: 190px;
+  bottom: 20px;
   left: 0;
   padding: 7px 10px;
+}
+.price-per-month {
+  padding-top: 4px;
+  float: left;
+}
+.price-extra {
+  float: right;
+  font-size: 10px;
 }
 .photo-amount {
   position: relative;
@@ -600,4 +609,7 @@ body>#load-more {
 }
 .keep-fresh{
   padding-top: 30px;
+}
+#featureModal button.close {
+  right: 25px;
 }

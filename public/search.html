@@ -247,10 +247,16 @@
           </div> <!-- .target-prev.target-control.block-link -->
 
           <div class="photo-overlay-bottom-left photo-overlay-label photo-overlay-listing-label">
-            <div>
+            <div class="price-per-month">
               <sup class="h6 text-contrast"><%= availability == '1' ? '£' : '' %></sup>
               <span class="h3 price-amount"><%= availability == '1' ? price_per_month : 'Gone' %></span>
               <sup class="h6 text-contrast"></sup>
+            </div>
+            <div class="price-extra price-agency">
+              <a class="text-contrast">Show agency fees</a>
+            </div>
+            <div class="price-extra price-council">
+              <a class="text-contrast">Show council tax</a>
             </div>
           </div> <!-- .photo-overlay-bottom-left.photo-overlay-label.photo-overlay-listing-label -->
 
@@ -429,6 +435,35 @@
                   <button class="btn btn-default btn-availability available-yes">Yes</button>
                   <button class="btn btn-default btn-availability available-no">No</button>
                   <button class="btn btn-default btn-availability available-notsure">Not Sure</button>
+                </div>
+              </div>
+            </div> <!-- .row -->
+          </div> <!-- .modal-body -->
+        </div>  <!-- .modal-content -->
+      </div>  <!-- .modal-dialog -->
+    </div> <!-- .modal -->
+  </script>
+
+  <script type="text/template" id="feature-modal-template">
+    <div class="modal" id="featureModal" tabindex="-1" role="dialog" aria-labelledby="featureLabel" aria-hidden="true">
+      <div class="action-modal-dialog height-desktop-full">
+        <div class="action-modal-content height-full">
+          <div class="action-modal-body height-full">
+            <div class="row height-full">
+              <div class="col-modal col-modal-main col-xs-12 height-full">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="featureLabel">This feature is coming soon</h4>
+                  <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                  </button>
+                </div>
+
+                <div class="col-modal-content centered">
+                  <h2> Building more stuff as fast as we can. </h2>
+                  <h6> Thanks for using the website, based on your feedback we'll keep
+                   adding more features to give you the best renting experience out there.</h6>
+
+                   <img width="100px" src="images/hackerboi.png"/>
                 </div>
               </div>
             </div> <!-- .row -->

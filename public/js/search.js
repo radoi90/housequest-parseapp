@@ -220,17 +220,21 @@ $(function() {
 
     callModalTemplate: _.template($('#call-modal-template').html()),
 
+    featureModalTemplate: _.template($('#feature-modal-template').html()),
+
     events: {
       "mouseenter .listing-container"   : "highlightOn",
       "mouseleave .listing-container"   : "highlightOff",
       "keypress #new-comment"           : "commentOnEnter",
       "click .listing-action.action-shortlist" : "shortlist",
       "click .listing-action.action-call" : "showCallModal",
+      "click .price-agency" : "trackAgencyFeeClicks",
+      "click .price-council" : "trackCouncilTaxClicks"
     },
 
     initialize: function() {
       var self = this;
-      _.bindAll(this, 'saveComment','showCallModal','hideCallModal');
+      _.bindAll(this, 'saveComment','showCallModal','hideCallModal','trackAgencyFeeClicks','trackCouncilTaxClicks');
 
       this.entry = new FeedEntry({listing: this.model});
       this.comments = [];
@@ -532,6 +536,63 @@ $(function() {
 
       this.hideCallModal();
       this.render();
+    },
+
+    trackAgencyFeeClicks: function(e) {
+      var details = {
+        feature: 'price-transparency',
+        category: 'agency-fees',
+        user: Parse.User.current() ? Parse.User.current().id : 'anonymous',
+        listing: this.model.id
+      };
+
+      Parse.Analytics.track('featureRequest', details);
+
+      this.showFeatureModal(e);
+    },
+
+    trackCouncilTaxClicks: function(e) {
+      var details = {
+        feature: 'price-transparency',
+        category: 'council-tax',
+        user: Parse.User.current() ? Parse.User.current().id : 'anonymous',
+        listing: this.model.id
+      };
+
+      Parse.Analytics.track('featureRequest', details);
+
+      this.showFeatureModal(e);
+    },
+
+    showFeatureModal: function(e) {
+      e.stopPropagation();
+      var self = this;
+      // Insert modal and load it
+      $('body').append(this.featureModalTemplate());
+      $('#featureModal').modal();
+
+      // Since the modal is inserted after jQuery loads we need to re-bind
+      // the click events which close the modal (outside model, on 'x' sign)
+      $('button.close').bind("click", self.hideFeatureModal);
+      $('html').bind("click", self.hideFeatureModal);
+      $('.action-modal-dialog').bind("click", function(event){
+          event.stopPropagation();
+      });
+
+      return false;
+    },
+
+    hideFeatureModal: function() {
+      console.log('hide');
+      // Unbind the click events
+      $('html').unbind("click");
+      $('button.close').unbind("click");
+      $('.action-modal-dialog').unbind("click");
+
+      // Remove modal and opaque backdrop
+      $('#featureModal').modal('hide');
+      $('#featureModal').remove();
+      $('.modal-backdrop').remove();
     }
   });
 
