@@ -1,6 +1,9 @@
 $( document ).ready(function() {
-	Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ", 
-		"lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
+	/* dev */
+	Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ", "lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
+	/* prod */
+	// Parse.initialize("5ITlOKP4A8ggw5KYLJnsHYyOoQ9CZydXeUDSqjiQ", 
+	// 	"lsm1ZGuKXFw1PLaU6WYHHSLN2o2V6FQd8675nfmi");
 	$('.carousel').carousel({
   		interval: 3500
 	});
