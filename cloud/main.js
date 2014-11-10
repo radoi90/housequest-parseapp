@@ -1,4 +1,8 @@
 var zoopla_api_key = 'ws9n766jdafxqb5btb6ad7v8',
+// dev
+var zoopla_api_key = 'kwt27yfdcvd6ek4gq2bqy2z5',
+// prod
+//var zoopla_api_key = 'ws9n766jdafxqb5btb6ad7v8',
 	zoopla_api_url = 'http://api.zoopla.co.uk/api/v1/property_listings.json';
 
 var facebook_api = 'https://graph.facebook.com/v2.1/';
