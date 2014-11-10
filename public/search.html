@@ -147,21 +147,19 @@
         </div> <!-- .col-xs-4.col-label -->
 
         <div class="col-xs-12 col-sm-8 col-input">
-          <label class="checkbox-inline">
-            <input type="checkbox" class="num-beds-select" value="0" <%= _.contains(num_beds,0) ? 'checked="checked"' : '' %>> Studio
-          </label>
-          <label class="checkbox-inline">
-            <input type="checkbox" class="num-beds-select" value="1" <%= _.contains(num_beds,1) ? 'checked="checked"' : '' %>> 1 bed
-          </label>
-          <label class="checkbox-inline">
-            <input type="checkbox" class="num-beds-select" value="2" <%= _.contains(num_beds,2) ? 'checked="checked"' : '' %>> 2 bed
-          </label>
-          <label class="checkbox-inline">
-            <input type="checkbox" class="num-beds-select" value="3" <%= _.contains(num_beds,3) ? 'checked="checked"' : '' %>> 3 bed
-          </label>
-          <label class="checkbox-inline">
-            <input type="checkbox" class="num-beds-select" value="4" <%= _.contains(num_beds,4) ? 'checked="checked"' : '' %>> 4 +
-          </label>
+          <div class="input-group num-beds-selector">
+            <span class="input-group-btn">
+                <button type="button" class="btn btn-default btn-number" <%= num_beds[0] == 1 ? 'disabled' : ''%> data-type="minus" data-field="quant[1]">
+                    <span class="glyphicon glyphicon-minus"></span>
+                </button>
+            </span>
+            <input type="text" name="quant[1]" class="form-control input-number num-beds-select" value="<%= num_beds[0] %>" min="1" max="10">
+            <span class="input-group-btn">
+                <button type="button" class="btn btn-default btn-number" data-type="plus" data-field="quant[1]">
+                    <span class="glyphicon glyphicon-plus"></span>
+                </button>
+            </span>
+        </div>
         </div> <!-- .col-xs-8.col-input -->
       </div> <!-- .row.row-filter -->
 
